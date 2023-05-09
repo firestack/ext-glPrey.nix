@@ -1,5 +1,7 @@
 # prey95bsp
 
+![a 3d level viewed in bright rainbow colors](.github/demo4_bsp_barycentric.png)
+
 a software-rendered viewer for Prey (1995) BSP files written in C.
 
 it can run on modern platforms with SDL2.
