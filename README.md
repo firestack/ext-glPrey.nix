@@ -12,7 +12,7 @@ It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The 
 
 - bsp.c - Prey BSP loader (`DEMO4.BSP`)
 - wad.c - Prey WAD loader (`MACT.WAD`)
-- main.c - Renderer using small3dlib
+- main.c - Renderer using [small3dlib](https://gitlab.com/drummyfish/small3dlib)
 - platform_sdl2.c - Backend code abstraction for SDL2
 
 ## thirdparty
