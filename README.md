@@ -6,6 +6,12 @@ a software-rendered viewer for Prey (1995) BSP files written in C.
 
 it can run on modern platforms with SDL2.
 
+## source files guide
+
+- bsp.c - Prey BSP loader (`DEMO4.BSP`)
+- wad.c - Prey WAD loader (`MACT.WAD`)
+- main.c - Renderer using small3dlib
+
 ## thirdparty
 
 * [small3dlib](https://gitlab.com/drummyfish/small3dlib)
