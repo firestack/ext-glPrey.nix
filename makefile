@@ -39,7 +39,7 @@
 
 CFLAGS += -std=c99 -pedantic -Wall
 
-SOURCES = prey95bsp.c
+SOURCES = main.c wad.c bsp.c
 
 SDL2 = platform_sdl2.c `sdl2-config --cflags --libs`
 
