@@ -522,12 +522,6 @@ void bsp_free(bsp_t *bsp)
 }
 
 /*
- * save_vec3
- */
-
-
-
-/*
  * bsp_save
  */
 
