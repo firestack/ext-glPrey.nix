@@ -134,7 +134,16 @@ int token_expect(FILE *stream, token_t *token, const char *string)
 
 void print_vec3(FILE *stream, vec3_t *vec)
 {
-	fprintf(stream, "%0.0f %0.0f %0.0f", vec->v[0], vec->v[1], vec->v[2]);
+	fprintf(stream, "%0.6f %0.6f %0.6f", vec->v[0], vec->v[1], vec->v[2]);
+}
+
+/*
+ * print_vec3i
+ */
+
+void print_vec3i(FILE *stream, vec3i_t *vec)
+{
+	fprintf(stream, "%d %d %d", vec->v[0], vec->v[1], vec->v[2]);
 }
 
 /*
@@ -510,4 +519,85 @@ void bsp_free(bsp_t *bsp)
 
 		free(bsp);
 	}
+}
+
+/*
+ * save_vec3
+ */
+
+
+
+/*
+ * bsp_save
+ */
+
+void bsp_save(bsp_t *bsp, const char *filename)
+{
+	/* variables */
+	FILE *file;
+	int i;
+
+	/* open file */
+	file = fopen(filename, "wb");
+	if (file == NULL)
+		platform_error("failed to open %s for writing", filename);
+
+	/* CAMERA */
+	fprintf(file, "CAMERA\n");
+
+	/* viewpoint */
+	fprintf(file, "viewpoint ");
+	print_vec3(file, &bsp->camera.viewpoint);
+	fprintf(file, "\n");
+
+	/* viewnormal */
+	fprintf(file, "viewnormal ");
+	print_vec3(file, &bsp->camera.viewnormal);
+	fprintf(file, "\n");
+
+	/* viewangle */
+	fprintf(file, "viewangle %d\n", bsp->camera.viewangle);
+
+	/* texturelength */
+	fprintf(file, "texturelength %d\n", bsp->camera.texturelength);
+
+	/* STRUCTURE */
+	fprintf(file, "STRUCTURE\n");
+
+	/* xcomponents */
+	fprintf(file, "xcomponents %d\n", bsp->num_xcomponents);
+	for (i = 0; i < bsp->num_xcomponents; i++)
+		fprintf(file, "%0.6f\n", bsp->xcomponents[i]);
+
+	/* ycomponents */
+	fprintf(file, "ycomponents %d\n", bsp->num_ycomponents);
+	for (i = 0; i < bsp->num_ycomponents; i++)
+		fprintf(file, "%0.6f\n", bsp->ycomponents[i]);
+
+	/* zcomponents */
+	fprintf(file, "zcomponents %d\n", bsp->num_zcomponents);
+	for (i = 0; i < bsp->num_zcomponents; i++)
+		fprintf(file, "%0.6f\n", bsp->zcomponents[i]);
+
+	/* vertices */
+	fprintf(file, "numverts %d\n", bsp->num_vertices);
+	for (i = 0; i < bsp->num_vertices; i++)
+	{
+		print_vec3i(file, &bsp->vertices[i]);
+		fprintf(file, "\n");
+	}
+
+	/* numpolys */
+	fprintf(file, "numpolys %d\n", bsp->num_polygons);
+
+	/* BSPTREE */
+	fprintf(file, "BSPTREE\n");
+
+	/* numnodes */
+	fprintf(file, "numnodes %d\n", bsp->num_nodes);
+
+	/* TODO: nodes and polys */
+
+	/* close file */
+	fclose(file);
 }

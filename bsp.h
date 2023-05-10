@@ -118,3 +118,4 @@ typedef struct
 /* function prototypes */
 bsp_t *bsp_read(const char *filename);
 void bsp_free(bsp_t *bsp);
+void bsp_save(bsp_t *bsp, const char *filename);
