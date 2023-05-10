@@ -6,11 +6,14 @@ a software-rendered viewer for Prey (1995) BSP files written in C.
 
 it can run on modern platforms with SDL2.
 
+It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The alpha can be downloaded here: [archive.org](https://archive.org/details/prey-1195/)
+
 ## source files guide
 
 - bsp.c - Prey BSP loader (`DEMO4.BSP`)
 - wad.c - Prey WAD loader (`MACT.WAD`)
 - main.c - Renderer using small3dlib
+- platform_sdl2.c - Backend code abstraction for SDL2
 
 ## thirdparty
 
