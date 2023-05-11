@@ -169,13 +169,13 @@ void s3l_init(bsp_t *bsp)
 
 	/* init model */
 	S3L_model3DInit(s3l.vertices, s3l.num_vertices, s3l.triangles, s3l.num_triangles, &s3l.model);
-	s3l.model.config.backfaceCulling = 1;
+	s3l.model.transform.scale.x = -S3L_F;
 
 	/* init scene */
 	S3L_sceneInit(&s3l.model, 1, &s3l.scene);
 
 	/* camera */
-	s3l.scene.camera.transform.translation.x = bsp->camera.viewpoint.v[0];
+	s3l.scene.camera.transform.translation.x = -bsp->camera.viewpoint.v[0];
 	s3l.scene.camera.transform.translation.y = bsp->camera.viewpoint.v[1];
 	s3l.scene.camera.transform.translation.z = bsp->camera.viewpoint.v[2];
 }
