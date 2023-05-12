@@ -11,6 +11,9 @@
 *.wad
 *.WAD
 
+*.bin
+*.BIN
+
 prey95bsp
 
 .vscode/
