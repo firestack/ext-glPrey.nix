@@ -74,6 +74,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define BPP 16
+#define FOV 90
 
 #ifndef M_PI
 #define M_PI 3.14159265
@@ -288,7 +289,7 @@ int main(int argc, char **argv)
 		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(70, w, 8, FLT_MAX);
+		gluPerspective(FOV * h, w, 8, FLT_MAX);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(-gl_pos[0], -gl_pos[1], -gl_pos[2]);
