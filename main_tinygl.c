@@ -106,7 +106,7 @@ int len_palette;
 void init(bsp_t *bsp)
 {
 	int i, v;
-	GLfloat red[4] = {0.8, 0.1, 0.0, 1.0};
+	GLfloat color[4] = {1.0, 1.0, 1.0, 1.0};
 
 	/* enable features */
 	glEnable(GL_CULL_FACE);
@@ -117,7 +117,7 @@ void init(bsp_t *bsp)
 	/* open list */
 	gl_bsp = glGenLists(1);
 	glNewList(gl_bsp, GL_COMPILE);
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, red);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
 
 	glShadeModel(GL_FLAT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
