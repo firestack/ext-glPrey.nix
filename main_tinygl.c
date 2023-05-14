@@ -258,10 +258,10 @@ int main(int argc, char **argv)
 		if (platform_key(KEY_A)) gl_pos[1] -= 32;
 		if (platform_key(KEY_S)) gl_pos[0] -= 32;
 		if (platform_key(KEY_D)) gl_pos[1] += 32;
-		if (platform_key(KEY_UP)) gl_rot[0] += 8;
-		if (platform_key(KEY_DOWN)) gl_rot[0] -= 8;
-		if (platform_key(KEY_LEFT)) gl_rot[1] += 8;
-		if (platform_key(KEY_RIGHT)) gl_rot[1] -= 8;
+		if (platform_key(KEY_UP)) gl_rot[0] += 1;
+		if (platform_key(KEY_DOWN)) gl_rot[0] -= 1;
+		if (platform_key(KEY_LEFT)) gl_rot[1] += 1;
+		if (platform_key(KEY_RIGHT)) gl_rot[1] -= 1;
 
 		/* gl */
 		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
@@ -270,7 +270,9 @@ int main(int argc, char **argv)
 		glFrustum(-1.0, 1.0, -h, h, 8, FLT_MAX);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		gluLookAt(gl_pos[0], gl_pos[1], gl_pos[2], 0, 0, 0, 0, 1, 0);
+		glTranslatef(-gl_pos[0], -gl_pos[1], -gl_pos[2]);
+		glRotatef(-gl_rot[0], 1, 0, 0); 
+		glRotatef(-gl_rot[1], 0, 1, 0); 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glPushMatrix();
