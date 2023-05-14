@@ -75,6 +75,10 @@
 #define HEIGHT 480
 #define BPP 16
 
+#ifndef M_PI
+#define M_PI 3.14159265
+#endif
+
 /*
  *
  * globals
@@ -170,13 +174,29 @@ void gluLookAt(GLfloat eyex, GLfloat eyey, GLfloat eyez, GLfloat centerx, GLfloa
 }
 
 /*
+ * gluLookAt
+ */
+
+void gluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
+{
+	GLfloat xmin, xmax, ymin, ymax;
+
+	ymax = zNear * tan(fovy * M_PI / 360.0);
+	ymin = -ymax;
+
+	xmin = ymin * aspect;
+	xmax = ymax * aspect;
+
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+}
+
+/*
  * init
  */
 
 void init(bsp_t *bsp)
 {
 	int i, v;
-	GLfloat color[4] = {1.0, 1.0, 1.0, 1.0};
 
 	/* enable features */
 	glEnable(GL_CULL_FACE);
@@ -187,10 +207,8 @@ void init(bsp_t *bsp)
 	/* open list */
 	gl_bsp = glGenLists(1);
 	glNewList(gl_bsp, GL_COMPILE);
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
 
 	glShadeModel(GL_FLAT);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	/* do commands */
 	for (i = 0; i < bsp->num_polygons; i++)
@@ -250,7 +268,10 @@ int main(int argc, char **argv)
 	/* main loop */
 	while (platform_frame())
 	{
+		GLfloat w = (GLfloat)WIDTH / (GLfloat)HEIGHT;
 		GLfloat h = (GLfloat)HEIGHT / (GLfloat)WIDTH;
+		GLfloat white[4] = {1.0, 1.0, 1.0, 1.0};
+		GLfloat black[4] = {0.0, 0.0, 0.0, 1.0};
 
 		/* inputs */
 		if (platform_key(KEY_ESCAPE)) break;
@@ -267,7 +288,7 @@ int main(int argc, char **argv)
 		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glFrustum(-1.0, 1.0, -h, h, 8, FLT_MAX);
+		gluPerspective(70, w, 8, FLT_MAX);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(-gl_pos[0], -gl_pos[1], -gl_pos[2]);
@@ -276,6 +297,12 @@ int main(int argc, char **argv)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glPushMatrix();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, black);
+		glCallList(gl_bsp);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, white);
+		glPolygonOffset(0, -1);
 		glCallList(gl_bsp);
 		glPopMatrix();
 
