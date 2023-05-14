@@ -18,6 +18,7 @@ It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The 
 ## thirdparty
 
 * [small3dlib](https://gitlab.com/drummyfish/small3dlib)
+* [TinyGL](https://bellard.org/TinyGL/)
 
 ## license
 
