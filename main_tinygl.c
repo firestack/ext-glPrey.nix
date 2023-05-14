@@ -120,6 +120,7 @@ void init(bsp_t *bsp)
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, red);
 
 	glShadeModel(GL_FLAT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	/* do commands */
 	for (i = 0; i < bsp->num_polygons; i++)
