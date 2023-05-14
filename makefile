@@ -41,7 +41,7 @@ CFLAGS += -std=c99 -pedantic -Wall
 
 SOURCES = wad.c bsp.c
 
-SOURCES_S3L = main.c $(SOURCES)
+SOURCES_S3L = main_s3l.c $(SOURCES)
 SOURCES_TINYGL = main_tinygl.c $(SOURCES)
 
 SDL2 = -DPLATFORM_SDL2 platform_sdl2.c `sdl2-config --cflags --libs`
