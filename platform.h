@@ -329,6 +329,7 @@ enum
 int platform_init(int w, int h, int bpp, const char *title);
 void platform_quit();
 int platform_frame();
+void platform_blit(int w, int h, int stride, void *pixels);
 void platform_screen_clear(uint32_t c);
 int platform_key(int sc);
 void platform_draw_pixel(uint16_t x, uint16_t y, uint32_t c);

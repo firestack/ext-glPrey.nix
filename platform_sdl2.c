@@ -102,12 +102,12 @@ struct
 
 int platform_init(int w, int h, int bpp, const char *title)
 {
+	/* variables */
+	int pixelformat;
+
 	/* init everything */
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		return SDL_FALSE;
-
-	/* suppress warnings */
-	(void)bpp;
 
 	/* create window */
 	context.window = SDL_CreateWindow(
@@ -130,10 +130,27 @@ int platform_init(int w, int h, int bpp, const char *title)
 
 	if (context.renderer == NULL) return SDL_FALSE;
 
+	/* bpp */
+	switch (bpp)
+	{
+		case 16:
+			pixelformat = SDL_PIXELFORMAT_RGB565;
+			break;
+
+		case 24:
+		case 32:
+			pixelformat = SDL_PIXELFORMAT_ARGB8888;
+			break;
+		
+		default:
+			platform_error("unrecognized bpp %d", bpp);
+			break;
+	}
+
 	/* create screen texture */
 	context.texture = SDL_CreateTexture(
 		context.renderer,
-		SDL_PIXELFORMAT_ARGB8888,
+		pixelformat,
 		SDL_TEXTUREACCESS_STREAMING,
 		w,
 		h
@@ -171,50 +188,6 @@ void platform_quit()
 
 	/* sdl2 */
 	SDL_Quit();
-}
-
-/*
- * platform_frame_start
- */
-
-void platform_frame_start()
-{
-	/* variables */
-	SDL_Event event;
-
-	/* event poll loop */
-	while (SDL_PollEvent(&event))
-	{
-		switch (event.type)
-		{
-			case SDL_QUIT:
-				context.running = SDL_FALSE;
-				break;
-
-			case SDL_MOUSEBUTTONDOWN:
-				context.mouse.b = SDL_TRUE;
-				break;
-
-			case SDL_MOUSEBUTTONUP:
-				context.mouse.b = SDL_FALSE;
-				break;
-
-			case SDL_MOUSEMOTION:
-				context.mouse.x = event.motion.x;
-				context.mouse.y = event.motion.y;
-				context.mouse.dx = event.motion.xrel;
-				context.mouse.dy = event.motion.yrel;
-				break;
-
-			case SDL_KEYDOWN:
-				context.keys[event.key.keysym.scancode] = SDL_TRUE;
-				break;
-
-			case SDL_KEYUP:
-				context.keys[event.key.keysym.scancode] = SDL_FALSE;
-				break;
-		}
-	}
 }
 
 /*
@@ -264,10 +237,10 @@ void calc_screen_pos(int x, int y, SDL_Rect *rect)
 }
 
 /*
- * platform_frame_end
+ * platform_blit
  */
 
-void platform_frame_end()
+void platform_blit(int w, int h, int stride, void *pixels)
 {
 	int x, y;
 	SDL_Rect rect;
@@ -276,8 +249,7 @@ void platform_frame_end()
 	calc_screen_pos(x, y, &rect);
 	calc_screen_size(x, y, &rect);
 
-	SDL_UpdateTexture(context.texture, NULL, context.pixels, 
-		context.width * sizeof(uint32_t));
+	SDL_UpdateTexture(context.texture, NULL, pixels, stride);
 	SDL_RenderClear(context.renderer);
 	SDL_RenderCopy(context.renderer, context.texture, NULL, &rect);
 	SDL_RenderPresent(context.renderer);
@@ -289,11 +261,42 @@ void platform_frame_end()
 
 int platform_frame()
 {
-	/* run end of last frame */
-	platform_frame_end();
+	/* variables */
+	SDL_Event event;
 
-	/* run start of this frame */
-	platform_frame_start();
+	/* event poll loop */
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+			case SDL_QUIT:
+				context.running = SDL_FALSE;
+				break;
+
+			case SDL_MOUSEBUTTONDOWN:
+				context.mouse.b = SDL_TRUE;
+				break;
+
+			case SDL_MOUSEBUTTONUP:
+				context.mouse.b = SDL_FALSE;
+				break;
+
+			case SDL_MOUSEMOTION:
+				context.mouse.x = event.motion.x;
+				context.mouse.y = event.motion.y;
+				context.mouse.dx = event.motion.xrel;
+				context.mouse.dy = event.motion.yrel;
+				break;
+
+			case SDL_KEYDOWN:
+				context.keys[event.key.keysym.scancode] = SDL_TRUE;
+				break;
+
+			case SDL_KEYUP:
+				context.keys[event.key.keysym.scancode] = SDL_FALSE;
+				break;
+		}
+	}
 
 	/* return run status */
 	return context.running;
