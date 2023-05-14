@@ -44,7 +44,7 @@ SOURCES = wad.c bsp.c
 SOURCES_S3L = main.c $(SOURCES)
 SOURCES_TINYGL = main_tinygl.c $(SOURCES)
 
-SDL2 = platform_sdl2.c `sdl2-config --cflags --libs`
+SDL2 = -DPLATFORM_SDL2 platform_sdl2.c `sdl2-config --cflags --libs`
 
 all: clean prey95bsp_s3l prey95bsp_tinygl
 

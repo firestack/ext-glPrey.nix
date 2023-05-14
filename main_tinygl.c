@@ -184,10 +184,10 @@ int main(int argc, char **argv)
 
 		/* inputs */
 		if (platform_key(KEY_ESCAPE)) break;
-		if (platform_key(KEY_W)) gl_pos[0] += 1;
-		if (platform_key(KEY_A)) gl_pos[1] -= 1;
-		if (platform_key(KEY_S)) gl_pos[0] -= 1;
-		if (platform_key(KEY_D)) gl_pos[1] += 1;
+		if (platform_key(KEY_W)) gl_pos[0] += 8;
+		if (platform_key(KEY_A)) gl_pos[1] -= 8;
+		if (platform_key(KEY_S)) gl_pos[0] -= 8;
+		if (platform_key(KEY_D)) gl_pos[1] += 8;
 		if (platform_key(KEY_UP)) gl_rot[0] += 1;
 		if (platform_key(KEY_DOWN)) gl_rot[0] -= 1;
 		if (platform_key(KEY_LEFT)) gl_rot[1] += 1;
