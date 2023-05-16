@@ -204,7 +204,7 @@ void gluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 {
 	GLfloat xmin, xmax, ymin, ymax;
 
-	ymax = zNear * tan(fovy * M_PI / 360.0);
+	ymax = zNear * tanf(fovy * M_PI / 360.0);
 	ymin = -ymax;
 
 	xmin = ymin * aspect;
