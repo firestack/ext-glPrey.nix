@@ -49,6 +49,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <float.h>
+#include <math.h>
 
 /* platform */
 #include "platform.h"
@@ -66,6 +67,17 @@
 
 /*
  *
+ * types
+ *
+ */
+
+typedef struct
+{
+	GLfloat x, y, z;
+} vec3f_t;
+
+/*
+ *
  * macros
  *
  */
@@ -76,9 +88,15 @@
 #define BPP 16
 #define FOV 90
 
+/* pi */
 #ifndef M_PI
 #define M_PI 3.14159265
 #endif
+#ifndef M_PI_2
+#define M_PI_2 M_PI / 2
+#endif
+
+#define SPEED 400
 
 /*
  *
@@ -89,8 +107,12 @@
 /* tinygl */
 ZBuffer *zb;
 GLint gl_bsp;
-GLfloat gl_pos[3];
-GLfloat gl_rot[3];
+vec3f_t m_pos;
+vec3f_t m_rot;
+vec3f_t m_look;
+vec3f_t m_strafe;
+vec3f_t m_vel;
+vec3f_t m_speedkey;
 
 /* prey */
 bsp_t *bsp;
@@ -175,7 +197,7 @@ void gluLookAt(GLfloat eyex, GLfloat eyey, GLfloat eyez, GLfloat centerx, GLfloa
 }
 
 /*
- * gluLookAt
+ * gluPerspective
  */
 
 void gluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
@@ -202,7 +224,6 @@ void init(bsp_t *bsp)
 	/* enable features */
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
 	glEnable(GL_DEPTH_TEST);
 
 	/* open list */
@@ -233,9 +254,9 @@ void init(bsp_t *bsp)
 	/* close list */
 	glEndList();
 
-	gl_pos[0] = bsp->camera.viewpoint.v[0];
-	gl_pos[1] = bsp->camera.viewpoint.v[1];
-	gl_pos[2] = bsp->camera.viewpoint.v[2];
+	m_pos.x = bsp->camera.viewpoint.v[0];
+	m_pos.y = bsp->camera.viewpoint.v[1];
+	m_pos.z = bsp->camera.viewpoint.v[2];
 }
 
 /*
@@ -276,33 +297,85 @@ int main(int argc, char **argv)
 
 		/* inputs */
 		if (platform_key(KEY_ESCAPE)) break;
-		if (platform_key(KEY_W)) gl_pos[0] += 32;
-		if (platform_key(KEY_A)) gl_pos[1] -= 32;
-		if (platform_key(KEY_S)) gl_pos[0] -= 32;
-		if (platform_key(KEY_D)) gl_pos[1] += 32;
-		if (platform_key(KEY_UP)) gl_rot[0] += 1;
-		if (platform_key(KEY_DOWN)) gl_rot[0] -= 1;
-		if (platform_key(KEY_LEFT)) gl_rot[1] += 1;
-		if (platform_key(KEY_RIGHT)) gl_rot[1] -= 1;
 
-		/* gl */
+		/* speed */
+		if (platform_key(KEY_LSHIFT))
+		{
+			m_speedkey.x = 2;
+			m_speedkey.y = 2;
+			m_speedkey.z = 2;
+		}
+		else
+		{
+			m_speedkey.x = 1;
+			m_speedkey.y = 1;
+			m_speedkey.z = 1;
+		}
+
+		/* forwards */
+		if (platform_key(KEY_W))
+		{
+			m_pos.x += m_look.x * SPEED * m_speedkey.x;
+			m_pos.y += m_look.y * SPEED * m_speedkey.y;
+			m_pos.z += m_look.z * SPEED * m_speedkey.z;
+		}
+
+		/* backwards */
+		if (platform_key(KEY_S))
+		{
+			m_pos.x -= m_look.x * SPEED * m_speedkey.x;
+			m_pos.y -= m_look.y * SPEED * m_speedkey.y;
+			m_pos.z -= m_look.z * SPEED * m_speedkey.z;
+		}
+
+		/* left */
+		if (platform_key(KEY_A))
+		{
+			m_pos.x += m_strafe.x * SPEED * m_speedkey.x;
+			m_pos.z += m_strafe.z * SPEED * m_speedkey.z;
+		}
+
+		/* right */
+		if (platform_key(KEY_D))
+		{
+			m_pos.x -= m_strafe.x * SPEED * m_speedkey.x;
+			m_pos.z -= m_strafe.z * SPEED * m_speedkey.z;
+		}
+
+		/* arrow keys */
+		if (platform_key(KEY_UP)) m_rot.x += 0.1f;
+		if (platform_key(KEY_DOWN)) m_rot.x -= 0.1f;
+		if (platform_key(KEY_LEFT)) m_rot.y -= 0.1f;
+		if (platform_key(KEY_RIGHT)) m_rot.y += 0.1f;
+
+		/* set viewport */
 		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
+
+		/* set perspective */
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		gluPerspective(FOV * h, w, 8, FLT_MAX);
+
+		/* set camera view */
+		m_look.x = cosf(m_rot.y) * cosf(m_rot.x);
+		m_look.y = sinf(m_rot.x);
+		m_look.z = sinf(m_rot.y) * cosf(m_rot.x);
+		m_strafe.x = cosf(m_rot.y - M_PI_2);
+		m_strafe.z = sinf(m_rot.y - M_PI_2);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		glTranslatef(-gl_pos[0], -gl_pos[1], -gl_pos[2]);
-		glRotatef(-gl_rot[0], 1, 0, 0); 
-		glRotatef(-gl_rot[1], 0, 1, 0); 
+		gluLookAt(m_pos.x, m_pos.y, m_pos.z, m_pos.x + m_look.x, m_pos.y + m_look.y, m_pos.z + m_look.z, 0.0f, 1.0f, 0.0);
+
+		/* clear screen */
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		/* render map with wireframe */
 		glPushMatrix();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glMaterialfv(GL_FRONT, GL_DIFFUSE, black);
+		glMaterialfv(GL_FRONT, GL_EMISSION, black);
 		glCallList(gl_bsp);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glMaterialfv(GL_FRONT, GL_DIFFUSE, white);
+		glMaterialfv(GL_FRONT, GL_EMISSION, white);
 		glPolygonOffset(0, -1);
 		glCallList(gl_bsp);
 		glPopMatrix();
