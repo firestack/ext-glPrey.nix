@@ -51,8 +51,8 @@
 #include <string.h>
 #include <stdint.h>
 
-/* platform */
-#include "platform.h"
+/* shim */
+#include "shim.h"
 
 /* wad */
 #include "wad.h"
@@ -77,24 +77,24 @@ wad_t *wad_read(const char *filename)
 	/* open file */
 	file = fopen(filename, "rb");
 	if (file == NULL)
-		platform_error("failed to open %s", filename);
+		shim_error("failed to open %s", filename);
 
 	/* alloc */
 	wad = calloc(1, sizeof(wad_t));
 	if (wad == NULL)
-		platform_error("failed malloc");
+		shim_error("failed malloc");
 
 	/* read header */
 	fread(&wad->header, sizeof(wad_header_t), 1, file);
 
 	/* check magic */
 	if (memcmp(&wad->header.magic, "IWAD", 4) != 0)
-		platform_error("invalid wad file");
+		shim_error("invalid wad file");
 
 	/* allocate lumps */
 	wad->lumps = calloc(wad->header.num_lumps, sizeof(wad_lump_t));
 	if (wad->lumps == NULL)
-		platform_error("failed malloc");
+		shim_error("failed malloc");
 
 	/* read lumps */
 	fseek(file, wad->header.ofs_lumps, SEEK_SET);
@@ -112,7 +112,7 @@ wad_t *wad_read(const char *filename)
 		/* alloc */
 		wad->lumps[i].data = malloc(wad->lumps[i].len_data);
 		if (wad->lumps[i].data == NULL)
-			platform_error("failed malloc");
+			shim_error("failed malloc");
 
 		/* read */
 		fseek(file, wad->lumps[i].ofs_data, SEEK_SET);

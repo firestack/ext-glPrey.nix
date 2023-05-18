@@ -39,20 +39,14 @@
 
 CFLAGS += -std=c99 -pedantic -Wall
 
-SOURCES = wad.c bsp.c
+SOURCES = shim.c main.c wad.c bsp.c
 
-SOURCES_S3L = main_s3l.c $(SOURCES)
-SOURCES_TINYGL = main_tinygl.c $(SOURCES)
+SDL2 = -DSHIM_SDL2=1 `sdl2-config --cflags --libs`
 
-SDL2 = -DPLATFORM_SDL2 platform_sdl2.c `sdl2-config --cflags --libs`
+all: clean prey95bsp
 
-all: clean prey95bsp_s3l prey95bsp_tinygl
-
-prey95bsp_s3l: $(SOURCES_S3L)
-	$(CC) -o prey95bsp_s3l $(SOURCES_S3L) $(SDL2) $(CFLAGS)
-
-prey95bsp_tinygl: $(SOURCES_TINYGL)
-	$(CC) -o prey95bsp_tinygl $(SOURCES_TINYGL) $(SDL2) $(CFLAGS) -L./TinyGL/lib -lTinyGL -lm
+prey95bsp: $(SOURCES)
+	$(CC) -o prey95bsp $(SOURCES) $(SDL2) $(CFLAGS) -L./TinyGL/lib -lTinyGL -lm
 
 clean:
-	$(RM) prey95bsp_s3l prey95bsp_tinygl *.exe
+	$(RM) prey95bsp *.exe

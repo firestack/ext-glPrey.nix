@@ -52,8 +52,8 @@
 #include <float.h>
 #include <math.h>
 
-/* platform */
-#include "platform.h"
+/* shim */
+#include "shim.h"
 
 /* tinygl */
 #include "TinyGL/inc/gl.h"
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 	/* palette */
 	palette = wad_find(wad, "PAL", &len_palette);
 	if (palette == NULL)
-		platform_error("wad does not contain PAL lump");
+		shim_error("wad does not contain PAL lump");
 
 	/* tinygl */
 	gl_pixels = malloc(WIDTH * HEIGHT * (BPP / 8));
@@ -188,10 +188,10 @@ int main(int argc, char **argv)
 	init(bsp);
 
 	/* init */
-	platform_init(WIDTH, HEIGHT, BPP, "prey95bsp");
+	shim_init(WIDTH, HEIGHT, BPP, "prey95bsp");
 
 	/* main loop */
-	while (platform_frame())
+	while (shim_frame())
 	{
 		GLfloat w = (GLfloat)WIDTH / (GLfloat)HEIGHT;
 		GLfloat h = (GLfloat)HEIGHT / (GLfloat)WIDTH;
@@ -199,10 +199,11 @@ int main(int argc, char **argv)
 		GLfloat black[4] = {0.0, 0.0, 0.0, 1.0};
 
 		/* inputs */
-		if (platform_key(KEY_ESCAPE)) break;
+		if (shim_key_read(SHIM_KEY_ESCAPE))
+			shim_should_quit(SHIM_TRUE);
 
 		/* speed */
-		if (platform_key(KEY_LSHIFT))
+		if (shim_key_read(SHIM_KEY_LSHIFT))
 		{
 			m_speedkey.v[0] = 2;
 			m_speedkey.v[1] = 2;
@@ -216,7 +217,7 @@ int main(int argc, char **argv)
 		}
 
 		/* forwards */
-		if (platform_key(KEY_W))
+		if (shim_key_read(SHIM_KEY_W))
 		{
 			m_pos.v[0] += m_look.v[0] * SPEED * m_speedkey.v[0];
 			m_pos.v[1] += m_look.v[1] * SPEED * m_speedkey.v[1];
@@ -224,7 +225,7 @@ int main(int argc, char **argv)
 		}
 
 		/* backwards */
-		if (platform_key(KEY_S))
+		if (shim_key_read(SHIM_KEY_S))
 		{
 			m_pos.v[0] -= m_look.v[0] * SPEED * m_speedkey.v[0];
 			m_pos.v[1] -= m_look.v[1] * SPEED * m_speedkey.v[1];
@@ -232,24 +233,24 @@ int main(int argc, char **argv)
 		}
 
 		/* left */
-		if (platform_key(KEY_A))
+		if (shim_key_read(SHIM_KEY_A))
 		{
 			m_pos.v[0] += m_strafe.v[0] * SPEED * m_speedkey.v[0];
 			m_pos.v[2] += m_strafe.v[2] * SPEED * m_speedkey.v[2];
 		}
 
 		/* right */
-		if (platform_key(KEY_D))
+		if (shim_key_read(SHIM_KEY_D))
 		{
 			m_pos.v[0] -= m_strafe.v[0] * SPEED * m_speedkey.v[0];
 			m_pos.v[2] -= m_strafe.v[2] * SPEED * m_speedkey.v[2];
 		}
 
 		/* arrow keys */
-		if (platform_key(KEY_UP)) m_rot.v[0] += 0.1f;
-		if (platform_key(KEY_DOWN)) m_rot.v[0] -= 0.1f;
-		if (platform_key(KEY_LEFT)) m_rot.v[1] -= 0.1f;
-		if (platform_key(KEY_RIGHT)) m_rot.v[1] += 0.1f;
+		if (shim_key_read(SHIM_KEY_UP)) m_rot.v[0] += 0.1f;
+		if (shim_key_read(SHIM_KEY_DOWN)) m_rot.v[0] -= 0.1f;
+		if (shim_key_read(SHIM_KEY_LEFT)) m_rot.v[1] -= 0.1f;
+		if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.v[1] += 0.1f;
 
 		/* set viewport */
 		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
@@ -284,13 +285,13 @@ int main(int argc, char **argv)
 		glPopMatrix();
 
 		/* blit */
-		platform_blit(WIDTH, HEIGHT, WIDTH * (BPP / 8), gl_pixels);
+		shim_blit(WIDTH, HEIGHT, BPP, gl_pixels);
 	}
 
 	/* quit */
 	ostgl_delete_context(gl_context);
 	free(gl_pixels);
-	platform_quit();
+	shim_quit();
 	bsp_free(bsp);
 	wad_free(wad);
 

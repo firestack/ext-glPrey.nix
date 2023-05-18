@@ -52,8 +52,8 @@
 #include <ctype.h>
 #include <stdint.h>
 
-/* platform */
-#include "platform.h"
+/* shim */
+#include "shim.h"
 
 /* bsp */
 #include "bsp.h"
@@ -296,7 +296,7 @@ void read_polygon(bsp_t *bsp, FILE *stream, polygon_t *polygon)
 	}
 	else
 	{
-		platform_error("no verts in polygon");
+		shim_error("no verts in polygon");
 	}
 
 	/* tname */
@@ -389,12 +389,12 @@ bsp_t *bsp_read(const char *filename)
 	/* open file */
 	file = fopen(filename, "rb");
 	if (file == NULL)
-		platform_error("failed to open %s", filename);
+		shim_error("failed to open %s", filename);
 
 	/* alloc */
 	bsp = calloc(1, sizeof(bsp_t));
 	if (bsp == NULL)
-		platform_error("failed malloc");
+		shim_error("failed malloc");
 
 	/* token loop */
 	while (token_read(file, &token))
@@ -534,7 +534,7 @@ void bsp_save(bsp_t *bsp, const char *filename)
 	/* open file */
 	file = fopen(filename, "wb");
 	if (file == NULL)
-		platform_error("failed to open %s for writing", filename);
+		shim_error("failed to open %s for writing", filename);
 
 	/* CAMERA */
 	fprintf(file, "CAMERA\n");
