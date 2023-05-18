@@ -60,10 +60,12 @@ typedef struct
 	int texturelength;
 } camera_t;
 
+#define TOKEN_STR_LEN 128
+
 /* lexer token */
 typedef struct
 {
-	char str[128];
+	char str[TOKEN_STR_LEN];
 	int len;
 } token_t;
 

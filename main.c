@@ -168,6 +168,10 @@ void init(bsp_t *bsp)
 
 int main(int argc, char **argv)
 {
+	/* suppress warnings */
+	SHIM_UNUSED(argc);
+	SHIM_UNUSED(argv);
+
 	/* read prey bsp */
 	bsp = bsp_read("DEMO4.BSP");
 

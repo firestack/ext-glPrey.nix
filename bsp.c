@@ -76,11 +76,11 @@ int token_read(FILE *stream, token_t *token)
 	char c;
 
 	/* clear string */
-	for (i = 0; i < sizeof(token->str); i++) token->str[i] = '\0';
+	for (i = 0; i < TOKEN_STR_LEN; i++) token->str[i] = '\0';
 
 	/* parse loop */
 	i = 0;
-	while (!feof(stream) && i < sizeof(token->str))
+	while (!feof(stream) && i < TOKEN_STR_LEN)
 	{
 		/* get char */
 		c = fgetc(stream);
@@ -275,7 +275,7 @@ void read_string(FILE *stream, char *string, int maxlen)
  * read_polygon
  */
 
-void read_polygon(bsp_t *bsp, FILE *stream, polygon_t *polygon)
+void read_polygon(FILE *stream, polygon_t *polygon)
 {
 	/* blah */
 	int i;
@@ -362,7 +362,7 @@ void read_node(bsp_t *bsp, FILE *stream, node_t *node)
 		{
 			int p;
 			read_int(stream, &p);
-			read_polygon(bsp, stream, &bsp->polygons[p]);
+			read_polygon(stream, &bsp->polygons[p]);
 		}
 
 		/* next node */
@@ -483,7 +483,7 @@ bsp_t *bsp_read(const char *filename)
 		{
 			int p;
 			read_int(file, &p);
-			read_polygon(bsp, file, &bsp->polygons[p]);
+			read_polygon(file, &bsp->polygons[p]);
 		}
 
 		/* read node */
