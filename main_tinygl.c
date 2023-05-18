@@ -69,17 +69,6 @@
 
 /*
  *
- * types
- *
- */
-
-typedef struct
-{
-	GLfloat x, y, z;
-} vec3f_t;
-
-/*
- *
  * macros
  *
  */
@@ -110,12 +99,12 @@ typedef struct
 ostgl_context *gl_context;
 void *gl_pixels;
 GLint gl_bsp;
-vec3f_t m_pos;
-vec3f_t m_rot;
-vec3f_t m_look;
-vec3f_t m_strafe;
-vec3f_t m_vel;
-vec3f_t m_speedkey;
+vec3_t m_pos;
+vec3_t m_rot;
+vec3_t m_look;
+vec3_t m_strafe;
+vec3_t m_vel;
+vec3_t m_speedkey;
 
 /* prey */
 bsp_t *bsp;
@@ -155,13 +144,11 @@ void init(bsp_t *bsp)
 
 		for (v = 0; v < bsp->polygons[i].num_verts; v++)
 		{
-			float x, y, z;
-
-			x = bsp->xcomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[0]];
-			y = bsp->ycomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[1]];
-			z = bsp->zcomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[2]];
-
-			glVertex3f(x, y, z);
+			glVertex3f(
+				bsp->xcomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[0]],
+				bsp->ycomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[1]],
+				bsp->zcomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[2]]
+			);
 		}
 
 		glEnd();
@@ -170,9 +157,9 @@ void init(bsp_t *bsp)
 	/* close list */
 	glEndList();
 
-	m_pos.x = bsp->camera.viewpoint.v[0];
-	m_pos.y = bsp->camera.viewpoint.v[1];
-	m_pos.z = bsp->camera.viewpoint.v[2];
+	m_pos.v[0] = bsp->camera.viewpoint.v[0];
+	m_pos.v[1] = bsp->camera.viewpoint.v[1];
+	m_pos.v[2] = bsp->camera.viewpoint.v[2];
 }
 
 /*
@@ -217,52 +204,52 @@ int main(int argc, char **argv)
 		/* speed */
 		if (platform_key(KEY_LSHIFT))
 		{
-			m_speedkey.x = 2;
-			m_speedkey.y = 2;
-			m_speedkey.z = 2;
+			m_speedkey.v[0] = 2;
+			m_speedkey.v[1] = 2;
+			m_speedkey.v[2] = 2;
 		}
 		else
 		{
-			m_speedkey.x = 1;
-			m_speedkey.y = 1;
-			m_speedkey.z = 1;
+			m_speedkey.v[0] = 1;
+			m_speedkey.v[1] = 1;
+			m_speedkey.v[2] = 1;
 		}
 
 		/* forwards */
 		if (platform_key(KEY_W))
 		{
-			m_pos.x += m_look.x * SPEED * m_speedkey.x;
-			m_pos.y += m_look.y * SPEED * m_speedkey.y;
-			m_pos.z += m_look.z * SPEED * m_speedkey.z;
+			m_pos.v[0] += m_look.v[0] * SPEED * m_speedkey.v[0];
+			m_pos.v[1] += m_look.v[1] * SPEED * m_speedkey.v[1];
+			m_pos.v[2] += m_look.v[2] * SPEED * m_speedkey.v[2];
 		}
 
 		/* backwards */
 		if (platform_key(KEY_S))
 		{
-			m_pos.x -= m_look.x * SPEED * m_speedkey.x;
-			m_pos.y -= m_look.y * SPEED * m_speedkey.y;
-			m_pos.z -= m_look.z * SPEED * m_speedkey.z;
+			m_pos.v[0] -= m_look.v[0] * SPEED * m_speedkey.v[0];
+			m_pos.v[1] -= m_look.v[1] * SPEED * m_speedkey.v[1];
+			m_pos.v[2] -= m_look.v[2] * SPEED * m_speedkey.v[2];
 		}
 
 		/* left */
 		if (platform_key(KEY_A))
 		{
-			m_pos.x += m_strafe.x * SPEED * m_speedkey.x;
-			m_pos.z += m_strafe.z * SPEED * m_speedkey.z;
+			m_pos.v[0] += m_strafe.v[0] * SPEED * m_speedkey.v[0];
+			m_pos.v[2] += m_strafe.v[2] * SPEED * m_speedkey.v[2];
 		}
 
 		/* right */
 		if (platform_key(KEY_D))
 		{
-			m_pos.x -= m_strafe.x * SPEED * m_speedkey.x;
-			m_pos.z -= m_strafe.z * SPEED * m_speedkey.z;
+			m_pos.v[0] -= m_strafe.v[0] * SPEED * m_speedkey.v[0];
+			m_pos.v[2] -= m_strafe.v[2] * SPEED * m_speedkey.v[2];
 		}
 
 		/* arrow keys */
-		if (platform_key(KEY_UP)) m_rot.x += 0.1f;
-		if (platform_key(KEY_DOWN)) m_rot.x -= 0.1f;
-		if (platform_key(KEY_LEFT)) m_rot.y -= 0.1f;
-		if (platform_key(KEY_RIGHT)) m_rot.y += 0.1f;
+		if (platform_key(KEY_UP)) m_rot.v[0] += 0.1f;
+		if (platform_key(KEY_DOWN)) m_rot.v[0] -= 0.1f;
+		if (platform_key(KEY_LEFT)) m_rot.v[1] -= 0.1f;
+		if (platform_key(KEY_RIGHT)) m_rot.v[1] += 0.1f;
 
 		/* set viewport */
 		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
@@ -273,14 +260,14 @@ int main(int argc, char **argv)
 		gluPerspective(FOV * h, w, 8, FLT_MAX);
 
 		/* set camera view */
-		m_look.x = cosf(m_rot.y) * cosf(m_rot.x);
-		m_look.y = sinf(m_rot.x);
-		m_look.z = sinf(m_rot.y) * cosf(m_rot.x);
-		m_strafe.x = cosf(m_rot.y - M_PI_2);
-		m_strafe.z = sinf(m_rot.y - M_PI_2);
+		m_look.v[0] = cosf(m_rot.v[1]) * cosf(m_rot.v[0]);
+		m_look.v[1] = sinf(m_rot.v[0]);
+		m_look.v[2] = sinf(m_rot.v[1]) * cosf(m_rot.v[0]);
+		m_strafe.v[0] = cosf(m_rot.v[1] - M_PI_2);
+		m_strafe.v[2] = sinf(m_rot.v[1] - M_PI_2);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		gluLookAt(m_pos.x, m_pos.y, m_pos.z, m_pos.x + m_look.x, m_pos.y + m_look.y, m_pos.z + m_look.z, 0.0f, 1.0f, 0.0);
+		gluLookAt(m_pos.v[0], m_pos.v[1], m_pos.v[2], m_pos.v[0] + m_look.v[0], m_pos.v[1] + m_look.v[1], m_pos.v[2] + m_look.v[2], 0.0f, 1.0f, 0.0);
 
 		/* clear screen */
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
