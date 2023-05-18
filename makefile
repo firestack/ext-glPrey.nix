@@ -39,6 +39,10 @@
 
 CFLAGS += -std=c99 -pedantic -Wall
 
+ifdef ANAL
+CFLAGS += -Wextra -fsanitize=address,undefined
+endif
+
 SOURCES = shim.c main.c wad.c bsp.c
 
 SDL2 = -DSHIM_SDL2=1 `sdl2-config --cflags --libs`
