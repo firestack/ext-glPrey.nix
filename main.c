@@ -183,6 +183,84 @@ int check_extension(const char *string, const char *ext)
 }
 
 /*
+ * camera
+ */
+
+void camera()
+{
+	GLfloat w = (GLfloat)gl_context->width / (GLfloat)gl_context->height;
+	GLfloat h = (GLfloat)gl_context->height / (GLfloat)gl_context->width;
+
+	/* speed */
+	if (shim_key_read(SHIM_KEY_LSHIFT))
+	{
+		m_speedkey.v[0] = 2;
+		m_speedkey.v[1] = 2;
+		m_speedkey.v[2] = 2;
+	}
+	else
+	{
+		m_speedkey.v[0] = 1;
+		m_speedkey.v[1] = 1;
+		m_speedkey.v[2] = 1;
+	}
+
+	/* forwards */
+	if (shim_key_read(SHIM_KEY_W))
+	{
+		m_pos.v[0] += m_look.v[0] * SPEED * m_speedkey.v[0];
+		m_pos.v[1] += m_look.v[1] * SPEED * m_speedkey.v[1];
+		m_pos.v[2] += m_look.v[2] * SPEED * m_speedkey.v[2];
+	}
+
+	/* backwards */
+	if (shim_key_read(SHIM_KEY_S))
+	{
+		m_pos.v[0] -= m_look.v[0] * SPEED * m_speedkey.v[0];
+		m_pos.v[1] -= m_look.v[1] * SPEED * m_speedkey.v[1];
+		m_pos.v[2] -= m_look.v[2] * SPEED * m_speedkey.v[2];
+	}
+
+	/* left */
+	if (shim_key_read(SHIM_KEY_A))
+	{
+		m_pos.v[0] += m_strafe.v[0] * SPEED * m_speedkey.v[0];
+		m_pos.v[2] += m_strafe.v[2] * SPEED * m_speedkey.v[2];
+	}
+
+	/* right */
+	if (shim_key_read(SHIM_KEY_D))
+	{
+		m_pos.v[0] -= m_strafe.v[0] * SPEED * m_speedkey.v[0];
+		m_pos.v[2] -= m_strafe.v[2] * SPEED * m_speedkey.v[2];
+	}
+
+	/* arrow keys */
+	if (shim_key_read(SHIM_KEY_UP)) m_rot.v[0] += 0.1f;
+	if (shim_key_read(SHIM_KEY_DOWN)) m_rot.v[0] -= 0.1f;
+	if (shim_key_read(SHIM_KEY_LEFT)) m_rot.v[1] -= 0.1f;
+	if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.v[1] += 0.1f;
+
+	/* set viewport */
+	glViewport(0, 0, (GLint)gl_context->width, (GLint)gl_context->height);
+
+	/* set perspective */
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(FOV * h, w, 8, FLT_MAX);
+
+	/* set camera view */
+	m_look.v[0] = cosf(m_rot.v[1]) * cosf(m_rot.v[0]);
+	m_look.v[1] = sinf(m_rot.v[0]);
+	m_look.v[2] = sinf(m_rot.v[1]) * cosf(m_rot.v[0]);
+	m_strafe.v[0] = cosf(m_rot.v[1] - M_PI_2);
+	m_strafe.v[2] = sinf(m_rot.v[1] - M_PI_2);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(m_pos.v[0], m_pos.v[1], m_pos.v[2], m_pos.v[0] + m_look.v[0], m_pos.v[1] + m_look.v[1], m_pos.v[2] + m_look.v[2], 0.0f, 1.0f, 0.0);
+}
+
+/*
  * main
  */
 
@@ -216,8 +294,6 @@ int main(int argc, char **argv)
 	/* main loop */
 	while (shim_frame())
 	{
-		GLfloat w = (GLfloat)gl_context->width / (GLfloat)gl_context->height;
-		GLfloat h = (GLfloat)gl_context->height / (GLfloat)gl_context->width;
 		GLfloat white[4] = {1.0, 1.0, 1.0, 1.0};
 		GLfloat black[4] = {0.0, 0.0, 0.0, 1.0};
 
@@ -225,73 +301,8 @@ int main(int argc, char **argv)
 		if (shim_key_read(SHIM_KEY_ESCAPE))
 			shim_should_quit(SHIM_TRUE);
 
-		/* speed */
-		if (shim_key_read(SHIM_KEY_LSHIFT))
-		{
-			m_speedkey.v[0] = 2;
-			m_speedkey.v[1] = 2;
-			m_speedkey.v[2] = 2;
-		}
-		else
-		{
-			m_speedkey.v[0] = 1;
-			m_speedkey.v[1] = 1;
-			m_speedkey.v[2] = 1;
-		}
-
-		/* forwards */
-		if (shim_key_read(SHIM_KEY_W))
-		{
-			m_pos.v[0] += m_look.v[0] * SPEED * m_speedkey.v[0];
-			m_pos.v[1] += m_look.v[1] * SPEED * m_speedkey.v[1];
-			m_pos.v[2] += m_look.v[2] * SPEED * m_speedkey.v[2];
-		}
-
-		/* backwards */
-		if (shim_key_read(SHIM_KEY_S))
-		{
-			m_pos.v[0] -= m_look.v[0] * SPEED * m_speedkey.v[0];
-			m_pos.v[1] -= m_look.v[1] * SPEED * m_speedkey.v[1];
-			m_pos.v[2] -= m_look.v[2] * SPEED * m_speedkey.v[2];
-		}
-
-		/* left */
-		if (shim_key_read(SHIM_KEY_A))
-		{
-			m_pos.v[0] += m_strafe.v[0] * SPEED * m_speedkey.v[0];
-			m_pos.v[2] += m_strafe.v[2] * SPEED * m_speedkey.v[2];
-		}
-
-		/* right */
-		if (shim_key_read(SHIM_KEY_D))
-		{
-			m_pos.v[0] -= m_strafe.v[0] * SPEED * m_speedkey.v[0];
-			m_pos.v[2] -= m_strafe.v[2] * SPEED * m_speedkey.v[2];
-		}
-
-		/* arrow keys */
-		if (shim_key_read(SHIM_KEY_UP)) m_rot.v[0] += 0.1f;
-		if (shim_key_read(SHIM_KEY_DOWN)) m_rot.v[0] -= 0.1f;
-		if (shim_key_read(SHIM_KEY_LEFT)) m_rot.v[1] -= 0.1f;
-		if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.v[1] += 0.1f;
-
-		/* set viewport */
-		glViewport(0, 0, (GLint)gl_context->width, (GLint)gl_context->height);
-
-		/* set perspective */
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(FOV * h, w, 8, FLT_MAX);
-
-		/* set camera view */
-		m_look.v[0] = cosf(m_rot.v[1]) * cosf(m_rot.v[0]);
-		m_look.v[1] = sinf(m_rot.v[0]);
-		m_look.v[2] = sinf(m_rot.v[1]) * cosf(m_rot.v[0]);
-		m_strafe.v[0] = cosf(m_rot.v[1] - M_PI_2);
-		m_strafe.v[2] = sinf(m_rot.v[1] - M_PI_2);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		gluLookAt(m_pos.v[0], m_pos.v[1], m_pos.v[2], m_pos.v[0] + m_look.v[0], m_pos.v[1] + m_look.v[1], m_pos.v[2] + m_look.v[2], 0.0f, 1.0f, 0.0);
+		/* do camera */
+		camera();
 
 		/* clear screen */
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
