@@ -56,9 +56,9 @@
 #include "shim.h"
 
 /* tinygl */
-#include "TinyGL/inc/gl.h"
-#include "TinyGL/inc/glu.h"
-#include "TinyGL/inc/oscontext.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/ostinygl.h>
 
 /* utilities */
 #include "rgb.h"
@@ -97,7 +97,6 @@
 
 /* tinygl */
 ostgl_context *gl_context;
-void *gl_pixels;
 GLint gl_bsp;
 vec3_t m_pos;
 vec3_t m_rot;
@@ -184,21 +183,20 @@ int main(int argc, char **argv)
 		shim_error("wad does not contain PAL lump");
 
 	/* tinygl */
-	gl_pixels = malloc(WIDTH * HEIGHT * (BPP / 8));
-	gl_context = ostgl_create_context(WIDTH, HEIGHT, BPP, &gl_pixels, 1);
-	ostgl_make_current(gl_context, 0);
+	gl_context = ostgl_create_context(WIDTH, HEIGHT, BPP);
+	ostgl_make_current(gl_context);
 
 	/* init model */
 	init(bsp);
 
 	/* init */
-	shim_init(WIDTH, HEIGHT, BPP, "prey95bsp");
+	shim_init(gl_context->width, gl_context->height, gl_context->depth, "prey95bsp");
 
 	/* main loop */
 	while (shim_frame())
 	{
-		GLfloat w = (GLfloat)WIDTH / (GLfloat)HEIGHT;
-		GLfloat h = (GLfloat)HEIGHT / (GLfloat)WIDTH;
+		GLfloat w = (GLfloat)gl_context->width / (GLfloat)gl_context->height;
+		GLfloat h = (GLfloat)gl_context->height / (GLfloat)gl_context->width;
 		GLfloat white[4] = {1.0, 1.0, 1.0, 1.0};
 		GLfloat black[4] = {0.0, 0.0, 0.0, 1.0};
 
@@ -257,7 +255,7 @@ int main(int argc, char **argv)
 		if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.v[1] += 0.1f;
 
 		/* set viewport */
-		glViewport(0, 0, (GLint)WIDTH, (GLint)HEIGHT);
+		glViewport(0, 0, (GLint)gl_context->width, (GLint)gl_context->height);
 
 		/* set perspective */
 		glMatrixMode(GL_PROJECTION);
@@ -289,12 +287,11 @@ int main(int argc, char **argv)
 		glPopMatrix();
 
 		/* blit */
-		shim_blit(WIDTH, HEIGHT, BPP, gl_pixels);
+		shim_blit(gl_context->width, gl_context->height, gl_context->depth, gl_context->pixels);
 	}
 
 	/* quit */
 	ostgl_delete_context(gl_context);
-	free(gl_pixels);
 	shim_quit();
 	bsp_free(bsp);
 	wad_free(wad);

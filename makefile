@@ -47,10 +47,12 @@ SOURCES = shim.c main.c wad.c bsp.c
 
 SDL2 = -DSHIM_SDL2=1 `sdl2-config --cflags --libs`
 
+TINYGL = -LTinyGL/lib -lTinyGL -lm -ITinyGL/inc
+
 all: clean prey95bsp
 
 prey95bsp: $(SOURCES)
-	$(CC) -o prey95bsp $(SOURCES) $(SDL2) $(CFLAGS) -L./TinyGL/lib -lTinyGL -lm
+	$(CC) -o prey95bsp $(SOURCES) $(TINYGL) $(SDL2) $(CFLAGS)
 
 clean:
 	$(RM) prey95bsp *.exe
