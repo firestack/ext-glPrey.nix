@@ -51,6 +51,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
+#include <string.h>
 
 /* shim */
 #include "shim.h"
@@ -159,6 +160,26 @@ void init(bsp_t *bsp)
 	m_pos.v[0] = bsp->camera.viewpoint.v[0];
 	m_pos.v[1] = bsp->camera.viewpoint.v[1];
 	m_pos.v[2] = bsp->camera.viewpoint.v[2];
+}
+
+/*
+ * check_extension
+ */
+
+int check_extension(const char *string, const char *ext)
+{
+	int s, e;
+
+	e = strlen(ext) + 1;
+	s = strlen(string) + 1;
+
+	while (--e >= 0 && --s >= 0)
+	{
+		if (ext[e] != string[s])
+			return 0;
+	}
+
+	return 1;
 }
 
 /*
