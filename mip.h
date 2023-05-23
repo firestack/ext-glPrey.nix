@@ -65,4 +65,5 @@ typedef struct
 
 /* function prototypes */
 mip_t *mip_from_buffer(void *buffer, size_t buffer_len);
+mip_t *mip_from_file(const char *filename);
 void *mip_free(mip_t *mip);

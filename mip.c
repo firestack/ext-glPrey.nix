@@ -124,6 +124,30 @@ mip_t *mip_from_buffer(void *buffer, size_t buffer_len)
 }
 
 /*
+ * mip_from_buffer
+ */
+
+mip_t *mip_from_file(const char *filename)
+{
+	FILE *file;
+	size_t len;
+	void *buffer;
+	mip_t *mip;
+
+	file = fopen(filename, "rb");
+	fseek(file, 0L, SEEK_END);
+	len = ftell(file);
+	fseek(file, 0L, SEEK_SET);
+	buffer = malloc(len);
+	fread(buffer, len, 1, file);
+	fclose(file);
+	mip = mip_from_buffer(buffer, len);
+	free(buffer);
+
+	return mip;
+}
+
+/*
  * mip_free
  */
 
