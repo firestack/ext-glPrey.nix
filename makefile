@@ -43,7 +43,7 @@ ifdef ANAL
 CFLAGS += -Wextra -fsanitize=address,undefined
 endif
 
-SOURCES = shim.c main.c wad.c bsp.c
+SOURCES = shim.c main.c wad.c bsp.c mip.c
 
 SDL2 = -DSHIM_SDL2=1 `sdl2-config --cflags --libs`
 
