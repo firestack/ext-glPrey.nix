@@ -37,10 +37,10 @@
 ## SOFTWARE.
 ## 
 
-CFLAGS += -std=c99 -pedantic -Wall
+CFLAGS += -std=c99 -pedantic -Wall -Wextra
 
-ifdef ANAL
-CFLAGS += -Wextra -fsanitize=address,undefined
+ifdef DEBUG
+CFLAGS += -g3 -fsanitize=address,undefined
 endif
 
 SOURCES = shim.c main.c wad.c bsp.c mip.c
