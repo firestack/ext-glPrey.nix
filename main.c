@@ -323,6 +323,7 @@ int main(int argc, char **argv)
 	}
 
 	/* quit */
+	glDeleteLists(gl_bsp, 1);
 	ostgl_delete_context(gl_context);
 	shim_quit();
 	bsp_free(bsp);
