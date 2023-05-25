@@ -1,6 +1,6 @@
 # prey95bsp
 
-![a 3d level viewed in bright rainbow colors](.github/demo4_bsp_tinygl.png)
+![a 3d level viewed in wireframe](.github/demo4_bsp_tinygl.png)
 
 a software-rendered viewer for Prey (1995) BSP files written in C.
 
@@ -12,6 +12,7 @@ It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The 
 
 - bsp.c - Prey BSP loader (`DEMO4.BSP`)
 - wad.c - Prey WAD loader (`MACT.WAD`)
+- mip.c - Prey MIPTEX loader (`MACT.WAD`)
 - main.c - Renderer using [TinyGL](https://github.com/erysdren/TinyGL)
 - shim.c - Backend abstraction code
 
