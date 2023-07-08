@@ -97,7 +97,7 @@
  */
 
 /* tinygl */
-ostgl_context *gl_context;
+ostgl_context_t *gl_context;
 GLint gl_bsp;
 vec3_t m_pos;
 vec3_t m_rot;
@@ -257,7 +257,8 @@ void camera()
 	m_strafe.v[2] = sinf(m_rot.v[1] - M_PI_2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(m_pos.v[0], m_pos.v[1], m_pos.v[2], m_pos.v[0] + m_look.v[0], m_pos.v[1] + m_look.v[1], m_pos.v[2] + m_look.v[2], 0.0f, 1.0f, 0.0);
+	gluLookAt(m_pos.v[0], m_pos.v[1], m_pos.v[2], m_pos.v[0] + m_look.v[0],
+		m_pos.v[1] + m_look.v[1], m_pos.v[2] + m_look.v[2], 0.0f, 1.0f, 0.0);
 }
 
 /*

@@ -51,9 +51,6 @@
 #include <string.h>
 #include <stdint.h>
 
-/* shim */
-#include "shim.h"
-
 /* wad */
 #include "wad.h"
 
@@ -77,24 +74,36 @@ wad_t *wad_read(const char *filename)
 	/* open file */
 	file = fopen(filename, "rb");
 	if (file == NULL)
-		shim_error("failed to open %s", filename);
+	{
+		printf("error: failed to open %s\n", filename);
+		return NULL;
+	}
 
 	/* alloc */
 	wad = calloc(1, sizeof(wad_t));
 	if (wad == NULL)
-		shim_error("failed malloc");
+	{
+		printf("error: failed malloc\n");
+		return NULL;
+	}
 
 	/* read header */
 	fread(&wad->header, sizeof(wad_header_t), 1, file);
 
 	/* check magic */
 	if (memcmp(&wad->header.magic, "IWAD", 4) != 0)
-		shim_error("invalid wad file");
+	{
+		printf("error: invalid wad file\n");
+		return NULL;
+	}
 
 	/* allocate lumps */
 	wad->lumps = calloc(wad->header.num_lumps, sizeof(wad_lump_t));
 	if (wad->lumps == NULL)
-		shim_error("failed malloc");
+	{
+		printf("error: failed malloc\n");
+		return NULL;
+	}
 
 	/* read lumps */
 	fseek(file, wad->header.ofs_lumps, SEEK_SET);
@@ -112,7 +121,10 @@ wad_t *wad_read(const char *filename)
 		/* alloc */
 		wad->lumps[i].data = malloc(wad->lumps[i].len_data);
 		if (wad->lumps[i].data == NULL)
-			shim_error("failed malloc");
+		{
+			printf("error: failed malloc\n");
+			return NULL;
+		}
 
 		/* read */
 		fseek(file, wad->lumps[i].ofs_data, SEEK_SET);

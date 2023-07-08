@@ -37,6 +37,11 @@
 ## SOFTWARE.
 ## 
 
+CC ?= gcc
+RM ?= rm -f
+PKGCONFIG ?= pkg-config
+SDL2CONFIG ?= sdl2-config
+
 CFLAGS += -std=c99 -pedantic -Wall -Wextra
 
 ifdef DEBUG
@@ -45,9 +50,9 @@ endif
 
 SOURCES = shim.c main.c wad.c bsp.c mip.c
 
-SDL2 = -DSHIM_SDL2=1 `sdl2-config --cflags --libs`
+SDL2 = -DSHIM_SDL2=1 $(shell $(SDL2CONFIG) --cflags --libs)
 
-TINYGL = -LTinyGL/lib -lTinyGL -lm -ITinyGL/inc
+TINYGL = $(shell $(PKGCONFIG) TinyGL --cflags --libs) -lm
 
 all: clean prey95bsp
 
@@ -55,4 +60,4 @@ prey95bsp: $(SOURCES)
 	$(CC) -o prey95bsp $(SOURCES) $(TINYGL) $(SDL2) $(CFLAGS)
 
 clean:
-	$(RM) prey95bsp *.exe
+	$(RM) prey95bsp *.o *.exe

@@ -52,9 +52,6 @@
 #include <ctype.h>
 #include <stdint.h>
 
-/* shim */
-#include "shim.h"
-
 /* bsp */
 #include "bsp.h"
 
@@ -296,7 +293,7 @@ void read_polygon(FILE *stream, polygon_t *polygon)
 	}
 	else
 	{
-		shim_error("no verts in polygon");
+		printf("error: no verts in polygon\n");
 	}
 
 	/* tname */
@@ -389,12 +386,18 @@ bsp_t *bsp_read(const char *filename)
 	/* open file */
 	file = fopen(filename, "rb");
 	if (file == NULL)
-		shim_error("failed to open %s", filename);
+	{
+		printf("error: failed to open %s\n", filename);
+		return NULL;
+	}
 
 	/* alloc */
 	bsp = calloc(1, sizeof(bsp_t));
 	if (bsp == NULL)
-		shim_error("failed malloc");
+	{
+		printf("error: failed malloc\n");
+		return NULL;
+	}
 
 	/* token loop */
 	while (token_read(file, &token))
@@ -534,7 +537,10 @@ void bsp_save(bsp_t *bsp, const char *filename)
 	/* open file */
 	file = fopen(filename, "wb");
 	if (file == NULL)
-		shim_error("failed to open %s for writing", filename);
+	{
+		printf("error: failed to open %s for writing\n", filename);
+		return;
+	}
 
 	/* CAMERA */
 	fprintf(file, "CAMERA\n");

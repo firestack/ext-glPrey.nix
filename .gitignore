@@ -15,8 +15,6 @@
 *.BIN
 
 prey95bsp
-prey95bsp_s3l
-prey95bsp_tinygl
 
 .vscode/
 *.code-workspace
