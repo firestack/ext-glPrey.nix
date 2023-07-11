@@ -14,7 +14,10 @@
 *.bin
 *.BIN
 
+*.ply
+
 prey95bsp
+bsp2ply
 
 .vscode/
 *.code-workspace

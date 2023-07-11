@@ -49,15 +49,19 @@ CFLAGS += -g3 -fsanitize=address,undefined
 endif
 
 SOURCES = shim.c main.c wad.c bsp.c mip.c
+SOURCES_BSP2PLY = bsp2ply.c bsp.c
 
 SDL2 = -DSHIM_SDL2=1 $(shell $(SDL2CONFIG) --cflags --libs)
 
 TINYGL = $(shell $(PKGCONFIG) TinyGL --cflags --libs) -lm
 
-all: clean prey95bsp
+all: clean prey95bsp bsp2ply
 
 prey95bsp: $(SOURCES)
 	$(CC) -o prey95bsp $(SOURCES) $(TINYGL) $(SDL2) $(CFLAGS)
 
+bsp2ply: $(SOURCES_BSP2PLY)
+	$(CC) -o bsp2ply $(SOURCES_BSP2PLY) $(CFLAGS)
+
 clean:
-	$(RM) prey95bsp *.o *.exe
+	$(RM) prey95bsp bsp2ply *.o *.exe
