@@ -24,6 +24,7 @@ make
 ## Controls
 
 - WASD: Move
+- Shift: Speed
 - Mouse: Look
 - Arrow Keys: Look
 
