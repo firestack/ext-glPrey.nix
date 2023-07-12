@@ -24,6 +24,7 @@ make
 - Only tested on Linux so far. Additional compatibility for Windows may be needed to build.
 - Texture mapping is not *quite* right, but it's close enough to look good.
 - Lightmaps are still a mystery.
+- If you happen to find any other BSPs or WADs from the Prey engine, you can specify them on the commandline with `--bsp` and `--wad`.
 
 ## Controls
 
