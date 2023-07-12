@@ -415,7 +415,9 @@ bsp_t *bsp_read(const char *filename)
 			read_int(file, &bsp->num_xcomponents);
 			bsp->xcomponents = calloc(bsp->num_xcomponents, sizeof(component_t));
 			for (x = 0; x < bsp->num_xcomponents; x++) read_float(file, &bsp->xcomponents[x]);
+			#if DEBUG
 			printf("%d xcomponents read\n", bsp->num_xcomponents);
+			#endif
 		}
 
 		/* read ycomponents */
@@ -425,7 +427,9 @@ bsp_t *bsp_read(const char *filename)
 			read_int(file, &bsp->num_ycomponents);
 			bsp->ycomponents = calloc(bsp->num_ycomponents, sizeof(component_t));
 			for (y = 0; y < bsp->num_ycomponents; y++) read_float(file, &bsp->ycomponents[y]);
+			#if DEBUG
 			printf("%d ycomponents read\n", bsp->num_ycomponents);
+			#endif
 		}
 
 		/* read zcomponents */
@@ -435,7 +439,9 @@ bsp_t *bsp_read(const char *filename)
 			read_int(file, &bsp->num_zcomponents);
 			bsp->zcomponents = calloc(bsp->num_zcomponents, sizeof(component_t));
 			for (z = 0; z < bsp->num_zcomponents; z++) read_float(file, &bsp->zcomponents[z]);
+			#if DEBUG
 			printf("%d zcomponents read\n", bsp->num_zcomponents);
+			#endif
 		}
 
 		/* read vertices */
@@ -452,7 +458,9 @@ bsp_t *bsp_read(const char *filename)
 				read_vec3i(file, &bsp->vertices[v]);
 			}
 
+			#if DEBUG
 			printf("%d vertices read\n", bsp->num_vertices);
+			#endif
 		}
 
 		/* allocate nodes */
@@ -460,7 +468,9 @@ bsp_t *bsp_read(const char *filename)
 		{
 			read_int(file, &bsp->num_nodes);
 			bsp->nodes = calloc(bsp->num_nodes, sizeof(node_t));
+			#if DEBUG
 			printf("%d nodes read\n", bsp->num_nodes);
+			#endif
 		}
 
 		/* allocate polygons */
@@ -468,7 +478,9 @@ bsp_t *bsp_read(const char *filename)
 		{
 			read_int(file, &bsp->num_polygons);
 			bsp->polygons = calloc(bsp->num_polygons, sizeof(polygon_t));
+			#if DEBUG
 			printf("%d poylgons read\n", bsp->num_polygons);
+			#endif
 		}
 
 		/* read node */

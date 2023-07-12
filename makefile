@@ -8,7 +8,7 @@ CFLAGS += -std=c99 -pedantic -Wall -Wextra $(shell $(PKGCONFIG) sdl2 gl glu --cf
 LDFLAGS += $(shell $(PKGCONFIG) sdl2 gl glu --libs) -lm
 
 ifdef DEBUG
-CFLAGS += -g3 -fsanitize=address,undefined
+CFLAGS += -DDEBUG=1 -g3 -fsanitize=address,undefined
 endif
 
 SOURCES = glprey.c wad.c bsp.c mip.c
