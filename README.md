@@ -6,6 +6,15 @@ An OpenGL viewer for Prey (1995) BSP files written in C with SDL2.
 
 It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The alpha can be downloaded here: [archive.org](https://archive.org/details/prey-1195/)
 
+## Building
+
+In a UNIX-like environment:
+
+```
+cd glPrey/
+make
+```
+
 ## Notes
 
 - Only tested on Linux so far. Additional compatibility for Windows may be needed to build.
@@ -21,6 +30,7 @@ It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The 
 ## Source Files
 
 - bsp.c - Prey BSP loader
+- bsp2ply.c Prey BSP to Stanford PLY converter
 - wad.c - Prey WAD loader
 - mip.c - Prey MIPTEX loader
 - glprey.c - Main GL renderer
