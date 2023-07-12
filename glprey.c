@@ -79,6 +79,12 @@ SOFTWARE.
 #define RAD2DEG(x) ((x) * 180.0f/M_PI)
 #define DEG2RAD(x) ((x) * M_PI/180.0f)
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN3(a, b, c) MIN(a, MIN(b, c))
+#define MAX3(a, b, c) MAX(a, MAX(b, c))
+#define CLAMP(a, min, max) MIN(MAX(a, min), max)
+
 /*
  *
  * types
@@ -108,6 +114,7 @@ const Uint8 *keys;
 /* gl */
 GLint gl_bsp;
 gl_texture_t gl_textures[128];
+size_t *lightmap_offsets = NULL;
 int num_gl_textures = 0;
 vec3_t m_pos;
 vec3_t m_rot;
@@ -128,6 +135,31 @@ int len_palette = 0;
  * functions
  *
  */
+
+/*
+ * error
+ */
+
+void error(const char *s, ...)
+{
+	/* variables */
+	va_list ap;
+	static char scratch[256];
+
+	/* do vargs */
+	va_start(ap, s);
+	vsnprintf(scratch, 256, s, ap);
+	va_end(ap);
+
+	/* show message box error */
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", scratch, NULL);
+
+	/* print to stderr */
+	fprintf(stderr, "error: %s\n", scratch);
+
+	/* exit */
+	exit(1);
+}
 
 /*
  * dot
@@ -182,6 +214,8 @@ int find_texture(char *s)
 		if (strcmp(gl_textures[i].name, s) == 0)
 			return gl_textures[i].id;
 	}
+
+	error("couldn't find texture %s\n", s);
 
 	return -1;
 }
@@ -291,10 +325,11 @@ void init(bsp_t *bsp)
 			normalize(&nv);
 
 			/* get s,t */
-			s = dot(tp, nu, NULL) / 8;
-			t = dot(tp, nv, NULL) / 8;
+			s = dot(tp, nu, NULL);
+			t = dot(tp, nv, NULL);
 
-			glTexCoord2f(s, t);
+			/* do commands */
+			glTexCoord2f(s / 8, t / 8);
 			glVertex3f(p.x, p.y, p.z);
 		}
 
@@ -417,31 +452,6 @@ void camera()
 	glLoadIdentity();
 	gluLookAt(m_pos.x, m_pos.y, m_pos.z, m_pos.x + m_look.x,
 		m_pos.y + m_look.y, m_pos.z + m_look.z, 0.0f, 1.0f, 0.0);
-}
-
-/*
- * error
- */
-
-void error(const char *s, ...)
-{
-	/* variables */
-	va_list ap;
-	static char scratch[256];
-
-	/* do vargs */
-	va_start(ap, s);
-	vsnprintf(scratch, 256, s, ap);
-	va_end(ap);
-
-	/* show message box error */
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", scratch, NULL);
-
-	/* print to stderr */
-	fprintf(stderr, "error: %s\n", scratch);
-
-	/* exit */
-	exit(1);
 }
 
 /*
