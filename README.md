@@ -29,11 +29,11 @@ make
 
 ## Source Files
 
-- bsp.c - Prey BSP loader
-- bsp2ply.c Prey BSP to Stanford PLY converter
-- wad.c - Prey WAD loader
-- mip.c - Prey MIPTEX loader
-- glprey.c - Main GL renderer
+- `bsp.c` - Prey BSP loader
+- `bsp2ply.c` Prey BSP to Stanford PLY converter
+- `wad.c` - Prey WAD loader
+- `mip.c` - Prey MIPTEX loader
+- `glprey.c` - Main GL renderer
 
 ## License
 
