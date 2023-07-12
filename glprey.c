@@ -45,7 +45,7 @@ SOFTWARE.
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-/* prey95bsp */
+/* glprey */
 #include "wad.h"
 #include "mip.h"
 #include "bsp.h"

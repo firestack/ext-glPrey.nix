@@ -36,7 +36,7 @@ SOFTWARE.
 #include <math.h>
 #include <string.h>
 
-/* prey95bsp */
+/* glprey */
 #include "bsp.h"
 
 /*
