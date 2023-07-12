@@ -1,43 +1,26 @@
-/* ****************************************************************************
- *
- * ANTI-CAPITALIST SOFTWARE LICENSE (v 1.4)
- *
- * Copyright © 2023 erysdren (it/they/she)
- *
- * This is anti-capitalist software, released for free use by individuals
- * and organizations that do not operate by capitalist principles.
- *
- * Permission is hereby granted, free of charge, to any person or
- * organization (the "User") obtaining a copy of this software and
- * associated documentation files (the "Software"), to use, copy, modify,
- * merge, distribute, and/or sell copies of the Software, subject to the
- * following conditions:
- *
- *   1. The above copyright notice and this permission notice shall be
- *   included in all copies or modified versions of the Software.
- *
- *   2. The User is one of the following:
- *     a. An individual person, laboring for themselves
- *     b. A non-profit organization
- *     c. An educational institution
- *     d. An organization that seeks shared profit for all of its members,
- *     and allows non-members to set the cost of their labor
- *
- *   3. If the User is an organization with owners, then all owners are
- *   workers and all workers are owners with equal equity and/or equal vote.
- *
- *   4. If the User is an organization, then the User is not law enforcement
- *   or military, or working for or under either.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT EXPRESS OR IMPLIED WARRANTY OF
- * ANY KIND, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * ************************************************************************* */
+/*
+MIT License
+
+Copyright (c) 2023 erysdren (it/she/they)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 
 /*
  *
@@ -54,16 +37,13 @@
 #include <string.h>
 #include <stdbool.h>
 
-/* shim */
-#include "shim.h"
+/* sdl2 */
+#include <SDL.h>
+#include <SDL_opengl.h>
 
-/* tinygl */
+/* gl */
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/ostinygl.h>
-
-/* utilities */
-#include "rgb.h"
 
 /* prey95bsp */
 #include "wad.h"
@@ -79,7 +59,6 @@
 /* gfx */
 #define WIDTH 640
 #define HEIGHT 480
-#define BPP 16
 #define FOV 90
 
 /* pi */
@@ -90,10 +69,15 @@
 #define M_PI_2 M_PI / 2
 #endif
 
-#define SPEED (0.5f)
+#define SPEED (400.0f)
 
 #define SCALE (1.0f/128.0f)
 #define SCALE2 (1.0f/1024.0f)
+
+#define KEY(x) (keys[x])
+
+#define RAD2DEG(x) ((x) * 180.0f/M_PI)
+#define DEG2RAD(x) ((x) * M_PI/180.0f)
 
 /*
  *
@@ -116,8 +100,12 @@ typedef struct
  *
  */
 
-/* tinygl */
-ostgl_context_t *gl_context;
+/* sdl2 */
+SDL_Window *window;
+SDL_GLContext context;
+const Uint8 *keys;
+
+/* gl */
 GLint gl_bsp;
 gl_texture_t gl_textures[128];
 int num_gl_textures = 0;
@@ -130,10 +118,10 @@ vec3_t m_speedkey;
 bool wireframe = false;
 
 /* prey */
-bsp_t *bsp;
-wad_t *wad;
-uint8_t *palette;
-int len_palette;
+bsp_t *bsp = NULL;
+wad_t *wad = NULL;
+uint8_t *palette = NULL;
+int len_palette = 0;
 
 /*
  *
@@ -210,7 +198,6 @@ void init(bsp_t *bsp)
 
 	/* enable features */
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
@@ -269,7 +256,6 @@ void init(bsp_t *bsp)
 	/* do commands */
 	for (i = 0; i < bsp->num_polygons; i++)
 	{
-		node_t *node;
 		vec3_t tu, tv, to;
 
 		/* find texture */
@@ -284,39 +270,32 @@ void init(bsp_t *bsp)
 		tv = bsp->polygons[i].tv;
 		to = bsp->polygons[i].to;
 
-		/* get node */
-		node = &bsp->nodes[bsp->polygons[i].node];
-		printf("node %d polygon %d\n", bsp->polygons[i].node, i);
-		printf("abc: %0.4f %0.4f %0.4f\n", node->a, node->b, node->c);
-		printf("d: %0.4f\n", node->d);
-		printf("tu: %0.4f %0.4f %0.4f\n", tu.x, tu.y, tu.z);
-		printf("tv: %0.4f %0.4f %0.4f\n", tv.x, tv.y, tv.z);
-		printf("to: %0.4f %0.4f %0.4f\n\n", to.x * SCALE2, to.y * SCALE2, to.z * SCALE2);
-
 		for (v = 0; v < bsp->polygons[i].num_verts; v++)
 		{
 			float s, t;
-			vec3_t p, tp;
+			vec3_t p, tp, nu, nv;
 
 			p.x = bsp->xcomponents[bsp->vertices[bsp->polygons[i].verts[v]].x];
 			p.y = bsp->ycomponents[bsp->vertices[bsp->polygons[i].verts[v]].y];
 			p.z = bsp->zcomponents[bsp->vertices[bsp->polygons[i].verts[v]].z];
 
 			/* calc offset */
-			tp.x = (p.x - to.x);
-			tp.y = (p.y - to.y);
-			tp.z = (p.z - to.z);
+			tp.x = (p.x - to.x) * SCALE2;
+			tp.y = (p.y - to.y) * SCALE2;
+			tp.z = (p.z - to.z) * SCALE2;
+
+			/* normalize */
+			nu = tu;
+			nv = tv;
+			normalize(&nu);
+			normalize(&nv);
 
 			/* get s,t */
-			s = dot(tp, tu, NULL);
-			t = dot(tp, tv, NULL);
+			s = dot(tp, nu, NULL) / 8;
+			t = dot(tp, nv, NULL) / 8;
 
-			printf("s: %0.4f t: %0.4f\n", s * SCALE2, t * SCALE2);
-			printf("x: %0.4f y: %0.4f z: %0.4f\n", p.x * SCALE2, p.y * SCALE2, p.z * SCALE2);
-			printf("tx: %0.4f ty: %0.4f tz: %0.4f\n\n", tp.x * SCALE2, tp.y * SCALE2, tp.z * SCALE2);
-
-			glTexCoord2f(s * SCALE2, t * SCALE2);
-			glVertex3f(p.x * SCALE2, p.y * SCALE2, p.z * SCALE2);
+			glTexCoord2f(s, t);
+			glVertex3f(p.x, p.y, p.z);
 		}
 
 		glEnd();
@@ -326,9 +305,9 @@ void init(bsp_t *bsp)
 	/* close list */
 	glEndList();
 
-	m_pos.x = bsp->camera.viewpoint.x * SCALE2;
-	m_pos.y = bsp->camera.viewpoint.y * SCALE2;
-	m_pos.z = bsp->camera.viewpoint.z * SCALE2;
+	m_pos.x = bsp->camera.viewpoint.x;
+	m_pos.y = bsp->camera.viewpoint.y;
+	m_pos.z = bsp->camera.viewpoint.z;
 }
 
 /*
@@ -357,11 +336,16 @@ int check_extension(const char *string, const char *ext)
 
 void camera()
 {
-	GLfloat w = (GLfloat)gl_context->width / (GLfloat)gl_context->height;
-	GLfloat h = (GLfloat)gl_context->height / (GLfloat)gl_context->width;
+	int w, h;
+	GLfloat x, y;
+
+	SDL_GL_GetDrawableSize(window, &w, &h);
+
+	x = (GLfloat)w / (GLfloat)h;
+	y = (GLfloat)h / (GLfloat)w;
 
 	/* speed */
-	if (shim_key_read(SHIM_KEY_LSHIFT))
+	if (KEY(SDL_SCANCODE_LSHIFT))
 	{
 		m_speedkey.x = 2;
 		m_speedkey.y = 2;
@@ -375,7 +359,7 @@ void camera()
 	}
 
 	/* forwards */
-	if (shim_key_read(SHIM_KEY_W))
+	if (KEY(SDL_SCANCODE_W))
 	{
 		m_pos.x += m_look.x * SPEED * m_speedkey.x;
 		m_pos.y += m_look.y * SPEED * m_speedkey.y;
@@ -383,7 +367,7 @@ void camera()
 	}
 
 	/* backwards */
-	if (shim_key_read(SHIM_KEY_S))
+	if (KEY(SDL_SCANCODE_S))
 	{
 		m_pos.x -= m_look.x * SPEED * m_speedkey.x;
 		m_pos.y -= m_look.y * SPEED * m_speedkey.y;
@@ -391,32 +375,36 @@ void camera()
 	}
 
 	/* left */
-	if (shim_key_read(SHIM_KEY_A))
+	if (KEY(SDL_SCANCODE_A))
 	{
 		m_pos.x += m_strafe.x * SPEED * m_speedkey.x;
 		m_pos.z += m_strafe.z * SPEED * m_speedkey.z;
 	}
 
 	/* right */
-	if (shim_key_read(SHIM_KEY_D))
+	if (KEY(SDL_SCANCODE_D))
 	{
 		m_pos.x -= m_strafe.x * SPEED * m_speedkey.x;
 		m_pos.z -= m_strafe.z * SPEED * m_speedkey.z;
 	}
 
 	/* arrow keys */
-	if (shim_key_read(SHIM_KEY_UP)) m_rot.x += 0.1f;
-	if (shim_key_read(SHIM_KEY_DOWN)) m_rot.x -= 0.1f;
-	if (shim_key_read(SHIM_KEY_LEFT)) m_rot.y -= 0.1f;
-	if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.y += 0.1f;
+	if (KEY(SDL_SCANCODE_UP)) m_rot.x += 0.1f;
+	if (KEY(SDL_SCANCODE_DOWN)) m_rot.x -= 0.1f;
+	if (KEY(SDL_SCANCODE_LEFT)) m_rot.y -= 0.1f;
+	if (KEY(SDL_SCANCODE_RIGHT)) m_rot.y += 0.1f;
+
+	/* lock camera */
+	if (m_rot.x < DEG2RAD(-75.0f)) m_rot.x = DEG2RAD(-75.0f);
+	if (m_rot.x > DEG2RAD(75.0f)) m_rot.x = DEG2RAD(75.0f);
 
 	/* set viewport */
-	glViewport(0, 0, (GLint)gl_context->width, (GLint)gl_context->height);
+	glViewport(0, 0, w, h);
 
 	/* set perspective */
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(FOV * h, w, 1, FLT_MAX);
+	gluPerspective(FOV * y, x, 1, FLT_MAX);
 
 	/* set camera view */
 	m_look.x = cosf(m_rot.y) * cosf(m_rot.x);
@@ -424,6 +412,7 @@ void camera()
 	m_look.z = sinf(m_rot.y) * cosf(m_rot.x);
 	m_strafe.x = cosf(m_rot.y - M_PI_2);
 	m_strafe.z = sinf(m_rot.y - M_PI_2);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(m_pos.x, m_pos.y, m_pos.z, m_pos.x + m_look.x,
@@ -431,66 +420,133 @@ void camera()
 }
 
 /*
+ * error
+ */
+
+void error(const char *s, ...)
+{
+	/* variables */
+	va_list ap;
+	static char scratch[256];
+
+	/* do vargs */
+	va_start(ap, s);
+	vsnprintf(scratch, 256, s, ap);
+	va_end(ap);
+
+	/* show message box error */
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", scratch, NULL);
+
+	/* print to stderr */
+	fprintf(stderr, "error: %s\n", scratch);
+
+	/* exit */
+	exit(1);
+}
+
+/*
+ * frame
+ */
+
+bool frame(void)
+{
+	SDL_Event event;
+	bool ret = true;
+
+	while (SDL_PollEvent(&event))
+	{
+		if (event.type == SDL_QUIT) ret = false;
+	}
+
+	keys = SDL_GetKeyboardState(NULL);
+
+	SDL_GL_SwapWindow(window);
+
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	return ret;
+}
+
+/*
  * main
  */
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	int i;
+	float time = 0.0f;
 
-	/* suppress warnings */
-	SHIM_UNUSED(argc);
-	SHIM_UNUSED(argv);
+	/* check if user specified files */
+	for (i = 1; i < argc; i++)
+	{
+		/* bsp */
+		if (strcmp(argv[i], "--bsp") == 0 && i + 1 < argc)
+		{
+			bsp = bsp_read(argv[i + 1]);
+			if (!bsp) error("couldn't read bsp %s", argv[i + 1]);
+		}
 
-	/* read prey bsp */
-	bsp = bsp_read("DEMO4.BSP");
+		/* wad */
+		if (strcmp(argv[i], "--wad") == 0 && i + 1 < argc)
+		{
+			wad = wad_read(argv[i + 1]);
+			if (!wad) error("couldn't read wad %s", argv[i + 1]);
+		}
+	}
 
-	/* read prey wad */
-	wad = wad_read("MACT.WAD");
+	/* read them again if user didn't select */
+	if (bsp == NULL) bsp = bsp_read("DEMO4.BSP");
+	if (bsp == NULL) error("couldn't read wad DEMO4.BSP");
+	if (wad == NULL) wad = wad_read("MACT.WAD");
+	if (wad == NULL) error("couldn't read wad MACT.WAD");
 
 	/* palette */
 	palette = wad_find(wad, "PAL", &len_palette);
 	if (palette == NULL)
-		shim_error("wad does not contain PAL lump");
+		error("wad does not contain PAL lump");
 
-	/* tinygl */
-	gl_context = ostgl_create_context(WIDTH, HEIGHT, BPP);
-	ostgl_make_current(gl_context);
+	/* sdl */
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+	window = SDL_CreateWindow("glprey", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+	context = SDL_GL_CreateContext(window);
 
 	/* init model */
 	init(bsp);
 
-	/* init */
-	shim_init(gl_context->width, gl_context->height, gl_context->depth, "prey95bsp");
-
 	/* main loop */
-	while (shim_frame())
+	while (frame())
 	{
 		/* inputs */
-		if (shim_key_read(SHIM_KEY_ESCAPE))
-			shim_should_quit(SHIM_TRUE);
+		if (KEY(SDL_SCANCODE_ESCAPE))
+			break;
 
 		/* do camera */
 		camera();
 
-		/* clear screen */
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		/* other inputs */
+		if (time > 0)
+		{
+			time -= 1.0f;
+		}
+		if (KEY(SDL_SCANCODE_TAB) && time < 1)
+		{
+			wireframe = wireframe ? false : true;
+			time += 10.0f;
+		}
 
 		/* render map, optionally with wireframe */
 		glPushMatrix();
-		glCallList(gl_bsp);
-		if (wireframe)
-		{
-			GLfloat white[4] = {1.0, 1.0, 1.0, 1.0};
+		if (wireframe == true)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glMaterialfv(GL_FRONT, GL_EMISSION, white);
-			glPolygonOffset(0, -1);
-			glCallList(gl_bsp);
-		}
+		else
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glCallList(gl_bsp);
 		glPopMatrix();
-
-		/* blit */
-		shim_blit(gl_context->width, gl_context->height, gl_context->depth, gl_context->pixels);
 	}
 
 	/* free textures */
@@ -502,10 +558,11 @@ int main(int argc, char **argv)
 
 	/* quit */
 	glDeleteLists(gl_bsp, 1);
-	ostgl_delete_context(gl_context);
-	shim_quit();
 	bsp_free(bsp);
 	wad_free(wad);
+	SDL_DestroyWindow(window);
+	SDL_GL_DeleteContext(context);
+	SDL_Quit();
 
 	/* exit gracefully */
 	return 0;

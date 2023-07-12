@@ -16,8 +16,8 @@
 
 *.ply
 
-prey95bsp
 bsp2ply
+glprey
 
 .vscode/
 *.code-workspace
