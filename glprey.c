@@ -69,10 +69,9 @@ SOFTWARE.
 #define M_PI_2 M_PI / 2
 #endif
 
-#define SPEED (400.0f)
+#define SPEED (1.0f)
 
-#define SCALE (1.0f/128.0f)
-#define SCALE2 (1.0f/1024.0f)
+#define SCALE (1.0f/1024.0f)
 
 #define KEY(x) (keys[x])
 
@@ -99,6 +98,11 @@ typedef struct
 	int height;
 	char name[8];
 } gl_texture_t;
+
+typedef struct
+{
+	float x, y;
+} vec2_t;
 
 /*
  *
@@ -128,6 +132,7 @@ bool wireframe = false;
 bsp_t *bsp = NULL;
 wad_t *wad = NULL;
 uint8_t *palette = NULL;
+uint8_t *colormap = NULL;
 int len_palette = 0;
 
 /*
@@ -165,26 +170,12 @@ void error(const char *s, ...)
  * dot
  */
 
-GLfloat dot(vec3_t v1, vec3_t v2, vec3_t *o)
+GLfloat dot(vec3_t v1, vec3_t v2)
 {
 	GLfloat result = 0.0f;
-
-	if (o)
-	{
-		o->x = v1.x * v2.x;
-		o->y = v1.y * v2.y;
-		o->z = v1.z * v2.z;
-		result += o->x;
-		result += o->y;
-		result += o->z;
-	}
-	else
-	{
-		result += v1.x * v2.x;
-		result += v1.y * v2.y;
-		result += v1.z * v2.z;
-	}
-
+	result += v1.x * v2.x;
+	result += v1.y * v2.y;
+	result += v1.z * v2.z;
 	return result;
 }
 
@@ -291,6 +282,13 @@ void init(bsp_t *bsp)
 	for (i = 0; i < bsp->num_polygons; i++)
 	{
 		vec3_t tu, tv, to;
+		vec2_t mins, maxs, extents;
+
+		/* init */
+		mins.x = INFINITY;
+		mins.y = INFINITY;
+		maxs.x = -INFINITY;
+		maxs.y = -INFINITY;
 
 		/* find texture */
 		v = find_texture(bsp->polygons[i].tname);
@@ -314,9 +312,9 @@ void init(bsp_t *bsp)
 			p.z = bsp->zcomponents[bsp->vertices[bsp->polygons[i].verts[v]].z];
 
 			/* calc offset */
-			tp.x = (p.x - to.x) * SCALE2;
-			tp.y = (p.y - to.y) * SCALE2;
-			tp.z = (p.z - to.z) * SCALE2;
+			tp.x = (p.x - to.x);
+			tp.y = (p.y - to.y);
+			tp.z = (p.z - to.z);
 
 			/* normalize */
 			nu = tu;
@@ -325,14 +323,40 @@ void init(bsp_t *bsp)
 			normalize(&nv);
 
 			/* get s,t */
-			s = dot(tp, nu, NULL);
-			t = dot(tp, nv, NULL);
+			s = dot(tp, nu) / 8;
+			t = dot(tp, nv) / 8;
+
+			/* yeah */
+			s *= SCALE;
+			t *= SCALE;
+			p.x *= SCALE;
+			p.y *= SCALE;
+			p.z *= SCALE;
+
+			/* store s, t */
+			if (s > maxs.x) maxs.x = s;
+			if (t > maxs.y) maxs.y = t;
+			if (s < mins.x) mins.x = s;
+			if (t < mins.y) mins.y = t;
+
+			printf("x: %0.4f y: %0.4f z: %0.4f\n", p.x, p.y, p.z);
+			printf("s: %0.4f t: %0.4f\n\n", s, t);
 
 			/* do commands */
-			glTexCoord2f(s / 8, t / 8);
+			glTexCoord2f(s, t);
 			glVertex3f(p.x, p.y, p.z);
 		}
 
+		/* get extents */
+		extents.x = (maxs.x - mins.x);
+		extents.y = (maxs.y - mins.y);
+
+		printf("mins: %0.4f %0.4f\n", mins.x, mins.y);
+		printf("maxs: %0.4f %0.4f\n", maxs.x, maxs.y);
+		printf("extents: %0.4f %0.4f\n", extents.x, extents.y);
+		printf("bytes: %0.4f\n\n", extents.x * extents.y);
+
+		/* end gl */
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 	}
@@ -340,9 +364,9 @@ void init(bsp_t *bsp)
 	/* close list */
 	glEndList();
 
-	m_pos.x = bsp->camera.viewpoint.x;
-	m_pos.y = bsp->camera.viewpoint.y;
-	m_pos.z = bsp->camera.viewpoint.z;
+	m_pos.x = bsp->camera.viewpoint.x * SCALE;
+	m_pos.y = bsp->camera.viewpoint.y * SCALE;
+	m_pos.z = bsp->camera.viewpoint.z * SCALE;
 }
 
 /*

@@ -15,6 +15,7 @@
 *.BIN
 
 *.ply
+*.map
 
 bsp2ply
 glprey
