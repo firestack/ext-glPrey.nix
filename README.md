@@ -1,4 +1,4 @@
-# glprey
+# glPrey
 
 ![a 3d level viewed in wireframe](.github/demo4_bsp_gl.png)
 
@@ -6,14 +6,26 @@ An OpenGL viewer for Prey (1995) BSP files written in C with SDL2.
 
 It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The alpha can be downloaded here: [archive.org](https://archive.org/details/prey-1195/)
 
-## source files guide
+## Notes
+
+- Only tested on Linux so far. Additional compatibility for Windows may be needed to build.
+- Texture mapping is not *quite* right, but it's close enough to look good.
+- Lightmaps are still a mystery.
+
+## Controls
+
+- WASD: Move
+- Mouse: Look
+- Arrow Keys: Look
+
+## Source Files
 
 - bsp.c - Prey BSP loader
 - wad.c - Prey WAD loader
 - mip.c - Prey MIPTEX loader
 - glprey.c - Main GL renderer
 
-## license
+## License
 
 MIT License
 
