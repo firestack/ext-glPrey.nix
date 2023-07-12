@@ -118,6 +118,34 @@ int len_palette;
  *
  */
 
+
+/*
+ * dot
+ */
+
+GLfloat dot(vec3_t v, vec3_t u)
+{
+	int i;
+	GLfloat result = 0.0f;
+	result += v.x * u.x;
+	result += v.y * u.y;
+	result += v.z * u.z;
+	return result;
+}
+
+/*
+ * normalize
+ */
+
+GLfloat normalize(vec3_t v)
+{
+	GLfloat w = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	v.x /= w;
+	v.y /= w;
+	v.z /= w;
+	return w;
+}
+
 /*
  * init
  */
@@ -145,9 +173,9 @@ void init(bsp_t *bsp)
 		for (v = 0; v < bsp->polygons[i].num_verts; v++)
 		{
 			glVertex3f(
-				bsp->xcomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[0]],
-				bsp->ycomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[1]],
-				bsp->zcomponents[bsp->vertices[bsp->polygons[i].verts[v]].v[2]]
+				bsp->xcomponents[bsp->vertices[bsp->polygons[i].verts[v]].x],
+				bsp->ycomponents[bsp->vertices[bsp->polygons[i].verts[v]].y],
+				bsp->zcomponents[bsp->vertices[bsp->polygons[i].verts[v]].z]
 			);
 		}
 
@@ -157,9 +185,9 @@ void init(bsp_t *bsp)
 	/* close list */
 	glEndList();
 
-	m_pos.v[0] = bsp->camera.viewpoint.v[0];
-	m_pos.v[1] = bsp->camera.viewpoint.v[1];
-	m_pos.v[2] = bsp->camera.viewpoint.v[2];
+	m_pos.x = bsp->camera.viewpoint.x;
+	m_pos.y = bsp->camera.viewpoint.y;
+	m_pos.z = bsp->camera.viewpoint.z;
 }
 
 /*
@@ -194,52 +222,52 @@ void camera()
 	/* speed */
 	if (shim_key_read(SHIM_KEY_LSHIFT))
 	{
-		m_speedkey.v[0] = 2;
-		m_speedkey.v[1] = 2;
-		m_speedkey.v[2] = 2;
+		m_speedkey.x = 2;
+		m_speedkey.y = 2;
+		m_speedkey.z = 2;
 	}
 	else
 	{
-		m_speedkey.v[0] = 1;
-		m_speedkey.v[1] = 1;
-		m_speedkey.v[2] = 1;
+		m_speedkey.x = 1;
+		m_speedkey.y = 1;
+		m_speedkey.z = 1;
 	}
 
 	/* forwards */
 	if (shim_key_read(SHIM_KEY_W))
 	{
-		m_pos.v[0] += m_look.v[0] * SPEED * m_speedkey.v[0];
-		m_pos.v[1] += m_look.v[1] * SPEED * m_speedkey.v[1];
-		m_pos.v[2] += m_look.v[2] * SPEED * m_speedkey.v[2];
+		m_pos.x += m_look.x * SPEED * m_speedkey.x;
+		m_pos.y += m_look.y * SPEED * m_speedkey.y;
+		m_pos.z += m_look.z * SPEED * m_speedkey.z;
 	}
 
 	/* backwards */
 	if (shim_key_read(SHIM_KEY_S))
 	{
-		m_pos.v[0] -= m_look.v[0] * SPEED * m_speedkey.v[0];
-		m_pos.v[1] -= m_look.v[1] * SPEED * m_speedkey.v[1];
-		m_pos.v[2] -= m_look.v[2] * SPEED * m_speedkey.v[2];
+		m_pos.x -= m_look.x * SPEED * m_speedkey.x;
+		m_pos.y -= m_look.y * SPEED * m_speedkey.y;
+		m_pos.z -= m_look.z * SPEED * m_speedkey.z;
 	}
 
 	/* left */
 	if (shim_key_read(SHIM_KEY_A))
 	{
-		m_pos.v[0] += m_strafe.v[0] * SPEED * m_speedkey.v[0];
-		m_pos.v[2] += m_strafe.v[2] * SPEED * m_speedkey.v[2];
+		m_pos.x += m_strafe.x * SPEED * m_speedkey.x;
+		m_pos.z += m_strafe.z * SPEED * m_speedkey.z;
 	}
 
 	/* right */
 	if (shim_key_read(SHIM_KEY_D))
 	{
-		m_pos.v[0] -= m_strafe.v[0] * SPEED * m_speedkey.v[0];
-		m_pos.v[2] -= m_strafe.v[2] * SPEED * m_speedkey.v[2];
+		m_pos.x -= m_strafe.x * SPEED * m_speedkey.x;
+		m_pos.z -= m_strafe.z * SPEED * m_speedkey.z;
 	}
 
 	/* arrow keys */
-	if (shim_key_read(SHIM_KEY_UP)) m_rot.v[0] += 0.1f;
-	if (shim_key_read(SHIM_KEY_DOWN)) m_rot.v[0] -= 0.1f;
-	if (shim_key_read(SHIM_KEY_LEFT)) m_rot.v[1] -= 0.1f;
-	if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.v[1] += 0.1f;
+	if (shim_key_read(SHIM_KEY_UP)) m_rot.x += 0.1f;
+	if (shim_key_read(SHIM_KEY_DOWN)) m_rot.x -= 0.1f;
+	if (shim_key_read(SHIM_KEY_LEFT)) m_rot.y -= 0.1f;
+	if (shim_key_read(SHIM_KEY_RIGHT)) m_rot.y += 0.1f;
 
 	/* set viewport */
 	glViewport(0, 0, (GLint)gl_context->width, (GLint)gl_context->height);
@@ -250,15 +278,15 @@ void camera()
 	gluPerspective(FOV * h, w, 8, FLT_MAX);
 
 	/* set camera view */
-	m_look.v[0] = cosf(m_rot.v[1]) * cosf(m_rot.v[0]);
-	m_look.v[1] = sinf(m_rot.v[0]);
-	m_look.v[2] = sinf(m_rot.v[1]) * cosf(m_rot.v[0]);
-	m_strafe.v[0] = cosf(m_rot.v[1] - M_PI_2);
-	m_strafe.v[2] = sinf(m_rot.v[1] - M_PI_2);
+	m_look.x = cosf(m_rot.y) * cosf(m_rot.x);
+	m_look.y = sinf(m_rot.x);
+	m_look.z = sinf(m_rot.y) * cosf(m_rot.x);
+	m_strafe.x = cosf(m_rot.y - M_PI_2);
+	m_strafe.z = sinf(m_rot.y - M_PI_2);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(m_pos.v[0], m_pos.v[1], m_pos.v[2], m_pos.v[0] + m_look.v[0],
-		m_pos.v[1] + m_look.v[1], m_pos.v[2] + m_look.v[2], 0.0f, 1.0f, 0.0);
+	gluLookAt(m_pos.x, m_pos.y, m_pos.z, m_pos.x + m_look.x,
+		m_pos.y + m_look.y, m_pos.z + m_look.z, 0.0f, 1.0f, 0.0);
 }
 
 /*

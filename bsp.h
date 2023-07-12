@@ -42,13 +42,13 @@
 /* vec3 (float) */
 typedef struct
 {
-	float v[3];
+	float x, y, z;
 } vec3_t;
 
 /* vec3 (integer) */
 typedef struct
 {
-	int v[3];
+	int x, y, z;
 } vec3i_t;
 
 /* bsp camera */
