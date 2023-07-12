@@ -131,7 +131,7 @@ int token_expect(FILE *stream, token_t *token, const char *string)
 
 void print_vec3(FILE *stream, vec3_t *vec)
 {
-	fprintf(stream, "%0.6f %0.6f %0.6f", vec->v[0], vec->v[1], vec->v[2]);
+	fprintf(stream, "%0.6f %0.6f %0.6f", vec->x, vec->y, vec->z);
 }
 
 /*
@@ -140,7 +140,7 @@ void print_vec3(FILE *stream, vec3_t *vec)
 
 void print_vec3i(FILE *stream, vec3i_t *vec)
 {
-	fprintf(stream, "%d %d %d", vec->v[0], vec->v[1], vec->v[2]);
+	fprintf(stream, "%d %d %d", vec->x, vec->y, vec->z);
 }
 
 /*
@@ -209,13 +209,15 @@ void read_vec3i(FILE *stream, vec3i_t *vec)
 {
 	/* variables */
 	token_t token;
-	int i;
 
-	for (i = 0; i < 3; i++)
-	{
-		token_read(stream, &token);
-		vec->v[i] = atoi(token.str);
-	}
+	token_read(stream, &token);
+	vec->x = atoi(token.str);
+
+	token_read(stream, &token);
+	vec->y = atoi(token.str);
+
+	token_read(stream, &token);
+	vec->z = atoi(token.str);
 }
 
 /*
@@ -226,13 +228,15 @@ void read_vec3(FILE *stream, vec3_t *vec)
 {
 	/* variables */
 	token_t token;
-	int i;
 
-	for (i = 0; i < 3; i++)
-	{
-		token_read(stream, &token);
-		vec->v[i] = atof(token.str);
-	}
+	token_read(stream, &token);
+	vec->x = atof(token.str);
+
+	token_read(stream, &token);
+	vec->y = atof(token.str);
+
+	token_read(stream, &token);
+	vec->z = atof(token.str);
 }
 
 /*
@@ -272,7 +276,7 @@ void read_string(FILE *stream, char *string, int maxlen)
  * read_polygon
  */
 
-void read_polygon(FILE *stream, polygon_t *polygon)
+void read_polygon(FILE *stream, polygon_t *polygon, int n)
 {
 	/* blah */
 	int i;
@@ -310,13 +314,16 @@ void read_polygon(FILE *stream, polygon_t *polygon)
 	/* to */
 	if (token_expect(stream, &token, "to"))
 		read_vec3(stream, &polygon->to);
+
+	/* assign node */
+	polygon->node = n;
 }
 
 /*
  * read_node
  */
 
-void read_node(bsp_t *bsp, FILE *stream, node_t *node)
+void read_node(bsp_t *bsp, FILE *stream, node_t *node, int n)
 {
 	token_t token;
 
@@ -359,7 +366,7 @@ void read_node(bsp_t *bsp, FILE *stream, node_t *node)
 		{
 			int p;
 			read_int(stream, &p);
-			read_polygon(stream, &bsp->polygons[p]);
+			read_polygon(stream, &bsp->polygons[p], n);
 		}
 
 		/* next node */
@@ -367,7 +374,7 @@ void read_node(bsp_t *bsp, FILE *stream, node_t *node)
 		{
 			int n;
 			read_int(stream, &n);
-			read_node(bsp, stream, &bsp->nodes[n]);
+			read_node(bsp, stream, &bsp->nodes[n], n);
 		}
 	}
 }
@@ -481,20 +488,12 @@ bsp_t *bsp_read(const char *filename)
 			printf("%d poylgons read\n", bsp->num_polygons);
 		}
 
-		/* read polygon */
-		if (token_string(&token, "polygon"))
-		{
-			int p;
-			read_int(file, &p);
-			read_polygon(file, &bsp->polygons[p]);
-		}
-
 		/* read node */
 		if (token_string(&token, "node"))
 		{
 			int n;
 			read_int(file, &n);
-			read_node(bsp, file, &bsp->nodes[n]);
+			read_node(bsp, file, &bsp->nodes[n], n);
 		}
 	}
 

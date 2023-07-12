@@ -81,6 +81,7 @@ typedef struct
 	vec3_t tu;
 	vec3_t tv;
 	vec3_t to;
+	int node;
 } polygon_t;
 
 /* bsp node */

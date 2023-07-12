@@ -93,9 +93,9 @@ int main(void)
 	for (i = 0; i < bsp->num_vertices; i++)
 	{
 		fprintf(ply, "%0.6f %0.6f %0.6f\n",
-			bsp->xcomponents[bsp->vertices[i].v[0]],
-			bsp->ycomponents[bsp->vertices[i].v[1]],
-			bsp->zcomponents[bsp->vertices[i].v[2]]
+			bsp->xcomponents[bsp->vertices[i].x],
+			bsp->ycomponents[bsp->vertices[i].y],
+			bsp->zcomponents[bsp->vertices[i].z]
 		);
 	}
 
