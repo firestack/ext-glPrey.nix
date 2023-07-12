@@ -6,6 +6,10 @@ An OpenGL viewer for Prey (1995) BSP files written in C with SDL2.
 
 It requires two files from the Prey 1995 alpha: `DEMO4.BSP` and `MACT.WAD`. The alpha can be downloaded here: [archive.org](https://archive.org/details/prey-1195/)
 
+## Credits
+
+- [Paril](https://github.com/Paril): Helped me figure out texture mapping.
+
 ## Building
 
 In a UNIX-like environment:
