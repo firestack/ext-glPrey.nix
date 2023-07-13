@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 
 	/* read them again if user didn't select */
 	if (bsp == NULL) bsp = bsp_read("DEMO4.BSP");
-	if (bsp == NULL) error("couldn't read wad DEMO4.BSP");
+	if (bsp == NULL) error("couldn't read bsp DEMO4.BSP");
 	if (wad == NULL) wad = wad_read("MACT.WAD");
 	if (wad == NULL) error("couldn't read wad MACT.WAD");
 
