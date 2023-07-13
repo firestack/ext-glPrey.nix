@@ -118,11 +118,6 @@ void init_bsp(bsp_t *bsp)
 	mip_t *mip;
 	int num_pixels;
 
-	/* enable features */
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
 	/* generate textures */
 	for (i = 0; i < wad->header.num_lumps; i++)
 	{

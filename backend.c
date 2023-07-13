@@ -310,6 +310,14 @@ bool init(int w, int h, char *title)
 	context = SDL_GL_CreateContext(window);
 	if (context == NULL) return false;
 
+	/* swap interval */
+	SDL_GL_SetSwapInterval(1);
+
+	/* enable gl features */
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 	/* exit gracefully */
 	return true;
 }
@@ -332,4 +340,13 @@ void quit(void)
 bool key(int sc)
 {
 	return keys[sc] ? true : false;
+}
+
+/*
+ * zalloc
+ */
+
+void *zalloc(size_t size)
+{
+	return calloc(1, size);
 }

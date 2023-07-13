@@ -27,6 +27,7 @@ SOFTWARE.
 
 /* std */
 #include <stdbool.h>
+#include <stddef.h>
 
 /* gl */
 #include <GL/gl.h>
@@ -91,5 +92,6 @@ bool frame(void);
 bool init(int w, int h, char *title);
 void quit(void);
 bool key(int sc);
+void *zalloc(size_t size);
 
 #endif /* _BACKEND_H_ */
