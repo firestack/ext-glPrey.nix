@@ -7,8 +7,13 @@ SDL2CONFIG ?= sdl2-config
 CFLAGS += -std=c99 -pedantic -Wall -Wextra
 LDFLAGS += -lm
 
-CFLAGS_GLPREY = $(shell $(PKGCONFIG) sdl2 gl glu --cflags)
-LDFLAGS_GLPREY = $(shell $(PKGCONFIG) sdl2 gl glu --libs)
+SDL2 = $(shell $(PKGCONFIG) sdl2 --cflags --libs)
+
+ifeq ($(CC), x86_64-w64-mingw32-gcc)
+GL = -lopengl32 -lglu32
+else
+GL = $(shell $(PKGCONFIG) gl glu --cflags --libs)
+endif
 
 ifdef DEBUG
 CFLAGS += -DDEBUG=1 -g3 -fsanitize=address,undefined
@@ -21,7 +26,7 @@ SOURCES_WAD2PNG = wad2png.c wad.c mip.c
 all: clean glprey bsp2ply wad2png
 
 glprey: $(SOURCES)
-	$(CC) -o glprey $(SOURCES) $(LDFLAGS) $(CFLAGS) $(CFLAGS_GLPREY) $(LDFLAGS_GLPREY)
+	$(CC) -o glprey $(SOURCES) $(LDFLAGS) $(CFLAGS) $(SDL2) $(GL)
 
 bsp2ply: $(SOURCES_BSP2PLY)
 	$(CC) -o bsp2ply $(SOURCES_BSP2PLY) $(LDFLAGS) $(CFLAGS)
