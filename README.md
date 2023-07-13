@@ -40,15 +40,20 @@ make
 - `wad.c` - Prey WAD loader
 - `mip.c` - Prey MIPTEX loader
 - `glprey.c` - Main GL renderer
+- `wad2png.c` - Prey WAD to PNG converter
+
+## Thirdparty
+
+- [`stb_image_write.h`](https://github.com/nothings/stb/blob/master/stb_image_write.h)
 
 ## Todo
 
-- DMO file playback
-- Lightmaps
-- Collision / gravity
-- Developer console
-- Windows support
-- WAD extractor tool
+- [ ] DMO file playback
+- [ ] Lightmaps
+- [ ] Collision / gravity
+- [ ] Developer console
+- [ ] Windows support
+- [x] WAD extractor tool
 
 ## License
 
