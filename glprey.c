@@ -46,6 +46,9 @@ SOFTWARE.
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+/* backend */
+#include "backend.h"
+
 /* glprey */
 #include "wad.h"
 #include "mip.h"
@@ -57,53 +60,8 @@ SOFTWARE.
  *
  */
 
-/* gfx */
-#define WIDTH 640
-#define HEIGHT 480
-#define FOV 90
-
-/* pi */
-#ifndef M_PI
-#define M_PI 3.14159265
-#endif
-#ifndef M_PI_2
-#define M_PI_2 M_PI / 2
-#endif
-
-#define SPEED (1.0f)
-
+/* level scale */
 #define SCALE (1.0f/1024.0f)
-
-#define KEY(x) (keys[x])
-
-#define RAD2DEG(x) ((x) * 180.0f/M_PI)
-#define DEG2RAD(x) ((x) * M_PI/180.0f)
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define MIN3(a, b, c) MIN(a, MIN(b, c))
-#define MAX3(a, b, c) MAX(a, MAX(b, c))
-#define CLAMP(a, min, max) MIN(MAX(a, min), max)
-
-/*
- *
- * types
- *
- */
-
-typedef struct
-{
-	GLuint id;
-	uint8_t *pixels;
-	int width;
-	int height;
-	char name[8];
-} gl_texture_t;
-
-typedef struct
-{
-	float x, y;
-} vec2_t;
 
 /*
  *
@@ -111,24 +69,11 @@ typedef struct
  *
  */
 
-/* sdl2 */
-SDL_Window *window;
-SDL_GLContext context;
-const Uint8 *keys;
-
 /* gl */
 GLint gl_bsp;
 gl_texture_t gl_textures[128];
 size_t *lightmap_offsets = NULL;
 int num_gl_textures = 0;
-vec3_t m_pos;
-vec3_t m_rot;
-vec3_t m_look;
-vec3_t m_strafe;
-vec3_t m_vel;
-vec3_t m_speedkey;
-vec2_t mouse;
-vec3i_t mb;
 bool wireframe = false;
 
 /* prey */
@@ -143,57 +88,6 @@ int len_palette = 0;
  * functions
  *
  */
-
-/*
- * error
- */
-
-void error(const char *s, ...)
-{
-	/* variables */
-	va_list ap;
-	static char scratch[256];
-
-	/* do vargs */
-	va_start(ap, s);
-	vsnprintf(scratch, 256, s, ap);
-	va_end(ap);
-
-	/* show message box error */
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", scratch, NULL);
-
-	/* print to stderr */
-	fprintf(stderr, "error: %s\n", scratch);
-
-	/* exit */
-	exit(1);
-}
-
-/*
- * dot
- */
-
-GLfloat dot(vec3_t v1, vec3_t v2)
-{
-	GLfloat result = 0.0f;
-	result += v1.x * v2.x;
-	result += v1.y * v2.y;
-	result += v1.z * v2.z;
-	return result;
-}
-
-/*
- * normalize
- */
-
-GLfloat normalize(vec3_t *v)
-{
-	GLfloat w = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
-	v->x /= w;
-	v->y /= w;
-	v->z /= w;
-	return w;
-}
 
 /*
  * find_texture
@@ -215,10 +109,10 @@ int find_texture(char *s)
 }
 
 /*
- * init
+ * init_bsp
  */
 
-void init(bsp_t *bsp)
+void init_bsp(bsp_t *bsp)
 {
 	int i, v;
 	mip_t *mip;
@@ -285,7 +179,10 @@ void init(bsp_t *bsp)
 	for (i = 0; i < bsp->num_polygons; i++)
 	{
 		vec3_t tu, tv, to;
-		vec2_t mins, maxs, extents;
+		vec2_t mins, maxs;
+		/*
+		vec2_t extents;
+		*/
 
 		/* init */
 		mins.x = INFINITY;
@@ -342,8 +239,10 @@ void init(bsp_t *bsp)
 			if (s < mins.x) mins.x = s;
 			if (t < mins.y) mins.y = t;
 
+			/*
 			printf("x: %0.4f y: %0.4f z: %0.4f\n", p.x, p.y, p.z);
 			printf("s: %0.4f t: %0.4f\n\n", s, t);
+			*/
 
 			/* do commands */
 			glTexCoord2f(s, t);
@@ -351,6 +250,7 @@ void init(bsp_t *bsp)
 		}
 
 		/* get extents */
+		/*
 		extents.x = (maxs.x - mins.x);
 		extents.y = (maxs.y - mins.y);
 
@@ -358,6 +258,7 @@ void init(bsp_t *bsp)
 		printf("maxs: %0.4f %0.4f\n", maxs.x, maxs.y);
 		printf("extents: %0.4f %0.4f\n", extents.x, extents.y);
 		printf("bytes: %0.4f\n\n", extents.x * extents.y);
+		*/
 
 		/* end gl */
 		glEnd();
@@ -367,185 +268,12 @@ void init(bsp_t *bsp)
 	/* close list */
 	glEndList();
 
-	m_pos.x = bsp->camera.viewpoint.x * SCALE;
-	m_pos.y = bsp->camera.viewpoint.y * SCALE;
-	m_pos.z = bsp->camera.viewpoint.z * SCALE;
-}
-
-/*
- * check_extension
- */
-
-int check_extension(const char *string, const char *ext)
-{
-	int s, e;
-
-	e = strlen(ext) + 1;
-	s = strlen(string) + 1;
-
-	while (--e >= 0 && --s >= 0)
-	{
-		if (ext[e] != string[s])
-			return 0;
-	}
-
-	return 1;
-}
-
-/*
- * camera
- */
-
-void camera(void)
-{
-	int w, h;
-	float vfov, hfov;
-	float aspect;
-
-	SDL_GL_GetDrawableSize(window, &w, &h);
-
-	/* speed */
-	if (KEY(SDL_SCANCODE_LSHIFT))
-	{
-		m_speedkey.x = 2;
-		m_speedkey.y = 2;
-		m_speedkey.z = 2;
-	}
-	else
-	{
-		m_speedkey.x = 1;
-		m_speedkey.y = 1;
-		m_speedkey.z = 1;
-	}
-
-	/* forwards */
-	if (KEY(SDL_SCANCODE_W))
-	{
-		m_pos.x += m_look.x * SPEED * m_speedkey.x;
-		m_pos.y += m_look.y * SPEED * m_speedkey.y;
-		m_pos.z += m_look.z * SPEED * m_speedkey.z;
-	}
-
-	/* backwards */
-	if (KEY(SDL_SCANCODE_S))
-	{
-		m_pos.x -= m_look.x * SPEED * m_speedkey.x;
-		m_pos.y -= m_look.y * SPEED * m_speedkey.y;
-		m_pos.z -= m_look.z * SPEED * m_speedkey.z;
-	}
-
-	/* left */
-	if (KEY(SDL_SCANCODE_A))
-	{
-		m_pos.x += m_strafe.x * SPEED * m_speedkey.x;
-		m_pos.z += m_strafe.z * SPEED * m_speedkey.z;
-	}
-
-	/* right */
-	if (KEY(SDL_SCANCODE_D))
-	{
-		m_pos.x -= m_strafe.x * SPEED * m_speedkey.x;
-		m_pos.z -= m_strafe.z * SPEED * m_speedkey.z;
-	}
-
-	/* arrow keys */
-	if (KEY(SDL_SCANCODE_UP)) m_rot.x += 4.0f;
-	if (KEY(SDL_SCANCODE_DOWN)) m_rot.x -= 4.0f;
-	if (KEY(SDL_SCANCODE_LEFT)) m_rot.y -= 4.0f;
-	if (KEY(SDL_SCANCODE_RIGHT)) m_rot.y += 4.0f;
-
-	/* mouse look */
-	if (mb.x || mb.y || mb.z)
-	{
-		m_rot.x -= mouse.y;
-		m_rot.y += mouse.x;
-	}
-
-	/* lock camera */
-	if (m_rot.x < -75.0f) m_rot.x = -75.0f;
-	if (m_rot.x > 75.0f) m_rot.x = 75.0f;
-
-	/* set viewport */
-	glViewport(0, 0, w, h);
-
-	/* get fov and aspect */
-	aspect = (float)w / (float)h;
-	hfov = DEG2RAD(FOV);
-	vfov = 2 * atanf(tanf(hfov / 2) * (float)h / (float)w);
-
-	/* set perspective */
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(ceilf(RAD2DEG(vfov)), aspect, 1, FLT_MAX);
-
-	/* set camera view */
-	m_look.x = cosf(DEG2RAD(m_rot.y)) * cosf(DEG2RAD(m_rot.x));
-	m_look.y = sinf(DEG2RAD(m_rot.x));
-	m_look.z = sinf(DEG2RAD(m_rot.y)) * cosf(DEG2RAD(m_rot.x));
-	m_strafe.x = cosf(DEG2RAD(m_rot.y) - M_PI_2);
-	m_strafe.z = sinf(DEG2RAD(m_rot.y) - M_PI_2);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(m_pos.x, m_pos.y, m_pos.z, m_pos.x + m_look.x,
-		m_pos.y + m_look.y, m_pos.z + m_look.z, 0.0f, 1.0f, 0.0);
-}
-
-/*
- * frame
- */
-
-bool frame(void)
-{
-	SDL_Event event;
-	bool ret = true;
-
-	mouse.x = 0;
-	mouse.y = 0;
-
-	while (SDL_PollEvent(&event))
-	{
-		switch (event.type)
-		{
-			case SDL_QUIT:
-				ret = false;
-				break;
-
-			case SDL_MOUSEBUTTONDOWN:
-				SDL_SetRelativeMouseMode(SDL_TRUE);
-				if (event.button.button == SDL_BUTTON_LEFT)
-					mb.x = 1;
-				else if (event.button.button == SDL_BUTTON_RIGHT)
-					mb.y = 1;
-				else if (event.button.button == SDL_BUTTON_MIDDLE)
-					mb.z = 1;
-				break;
-
-			case SDL_MOUSEBUTTONUP:
-				SDL_SetRelativeMouseMode(SDL_FALSE);
-				if (event.button.button == SDL_BUTTON_LEFT)
-					mb.x = 0;
-				else if (event.button.button == SDL_BUTTON_RIGHT)
-					mb.y = 0;
-				else if (event.button.button == SDL_BUTTON_MIDDLE)
-					mb.z = 0;
-				break;
-
-			case SDL_MOUSEMOTION:
-				mouse.x += event.motion.xrel;
-				mouse.y += event.motion.yrel;
-				break;
-		}
-	}
-
-	keys = SDL_GetKeyboardState(NULL);
-
-	SDL_GL_SwapWindow(window);
-
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	return ret;
+	/* set camera pos */
+	camera_set_pos(
+		bsp->camera.viewpoint.x * SCALE,
+		bsp->camera.viewpoint.y * SCALE,
+		bsp->camera.viewpoint.z * SCALE
+	);
 }
 
 /*
@@ -586,34 +314,28 @@ int main(int argc, char *argv[])
 	if (palette == NULL)
 		error("wad does not contain PAL lump");
 
-	/* sdl */
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("glprey", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+	/* init sdl and gl  */
+	init(640, 480, "glPrey");
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-	context = SDL_GL_CreateContext(window);
-
-	/* init model */
-	init(bsp);
+	/* init bsp */
+	init_bsp(bsp);
 
 	/* main loop */
 	while (frame())
 	{
 		/* inputs */
-		if (KEY(SDL_SCANCODE_ESCAPE))
+		if (key(SDL_SCANCODE_ESCAPE))
 			break;
 
 		/* do camera */
-		camera();
+		camera(1.0f, 90.0f);
 
 		/* other inputs */
 		if (time > 0)
 		{
 			time -= 1.0f;
 		}
-		if (KEY(SDL_SCANCODE_TAB) && time < 1)
+		if (key(SDL_SCANCODE_TAB) && time < 1)
 		{
 			wireframe = wireframe ? false : true;
 			time += 10.0f;
@@ -640,9 +362,7 @@ int main(int argc, char *argv[])
 	glDeleteLists(gl_bsp, 1);
 	bsp_free(bsp);
 	wad_free(wad);
-	SDL_DestroyWindow(window);
-	SDL_GL_DeleteContext(context);
-	SDL_Quit();
+	quit();
 
 	/* exit gracefully */
 	return 0;

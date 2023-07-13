@@ -22,77 +22,74 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* backend */
-#include "backend.h"
+#ifndef _BACKEND_H_
+#define _BACKEND_H_
 
-/* bsp camera */
+/* std */
+#include <stdbool.h>
+
+/* gl */
+#include <GL/gl.h>
+
+/* vec3 (float) */
 typedef struct
 {
-	vec3_t viewpoint;
-	vec3_t viewnormal;
-	int viewangle;
-	int texturelength;
-} camera_t;
+	float x, y, z;
+} vec3_t;
 
-#define TOKEN_STR_LEN 128
-
-/* lexer token */
+/* vec3 (int) */
 typedef struct
 {
-	char str[TOKEN_STR_LEN];
-	int len;
-} token_t;
+	int x, y, z;
+} vec3i_t;
 
-/* bsp x/y/z component */
-typedef float component_t;
-
-/* bsp polygon */
+/* vec2 (float) */
 typedef struct
 {
-	int verts[32];
-	int num_verts;
-	char tname[32];
-	vec3_t tu;
-	vec3_t tv;
-	vec3_t to;
-	int node;
-} polygon_t;
+	float x, y;
+} vec2_t;
 
-/* bsp node */
+/* vec2 (int) */
 typedef struct
 {
-	float a, b, c, d;
-	int inid;
-	int outid;
-	int front;
-	int back;
-} node_t;
+	int x, y;
+} vec2i_t;
 
-/* bsp structure */
+/* gl texture */
 typedef struct
 {
-	camera_t camera;
+	GLuint id;
+	uint8_t *pixels;
+	int width;
+	int height;
+	char name[8];
+} gl_texture_t;
 
-	component_t *xcomponents;
-	int num_xcomponents;
+/* pi */
+#ifndef M_PI
+#define M_PI 3.14159265
+#endif
+#ifndef M_PI_2
+#define M_PI_2 M_PI / 2
+#endif
 
-	component_t *ycomponents;
-	int num_ycomponents;
+/* radians/deg */
+#ifndef RAD2DEG
+#define RAD2DEG(x) ((x) * 180.0f/M_PI)
+#endif
+#ifndef DEG2RAD
+#define DEG2RAD(x) ((x) * M_PI/180.0f)
+#endif
 
-	component_t *zcomponents;
-	int num_zcomponents;
+/* functions */
+void error(const char *s, ...);
+float dot(vec3_t v1, vec3_t v2);
+float normalize(vec3_t *v);
+void camera(float speed, float hfov);
+void camera_set_pos(float x, float y, float z);
+bool frame(void);
+bool init(int w, int h, char *title);
+void quit(void);
+bool key(int sc);
 
-	vec3i_t *vertices;
-	int num_vertices;
-
-	polygon_t *polygons;
-	int num_polygons;
-
-	node_t *nodes;
-	int num_nodes;
-} bsp_t;
-
-/* function prototypes */
-bsp_t *bsp_read(const char *filename);
-void bsp_free(bsp_t *bsp);
-void bsp_save(bsp_t *bsp, const char *filename);
+#endif /* _BACKEND_H_ */

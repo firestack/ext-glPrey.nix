@@ -19,7 +19,7 @@ ifdef DEBUG
 CFLAGS += -DDEBUG=1 -g3 -fsanitize=address,undefined
 endif
 
-SOURCES = glprey.c wad.c bsp.c mip.c
+SOURCES = glprey.c backend.c wad.c bsp.c mip.c
 SOURCES_BSP2PLY = bsp2ply.c bsp.c
 SOURCES_WAD2PNG = wad2png.c wad.c mip.c
 
