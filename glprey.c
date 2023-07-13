@@ -314,6 +314,10 @@ int main(int argc, char *argv[])
 	/* init sdl and gl  */
 	init(640, 480, "glPrey");
 
+	/* print gl info */
+	fprintf(stderr, "%s\n", glGetString(GL_VERSION));
+	fprintf(stderr, "%s\n", glGetString(GL_RENDERER));
+
 	/* init bsp */
 	init_bsp(bsp);
 
