@@ -104,11 +104,6 @@ typedef struct
 	float x, y;
 } vec2_t;
 
-typedef struct
-{
-	int x, y;
-} vec2i_t;
-
 /*
  *
  * globals
@@ -132,7 +127,7 @@ vec3_t m_strafe;
 vec3_t m_vel;
 vec3_t m_speedkey;
 vec2_t mouse;
-vec2i_t mb;
+vec3i_t mb;
 bool wireframe = false;
 
 /* prey */
@@ -459,7 +454,7 @@ void camera(void)
 	if (KEY(SDL_SCANCODE_RIGHT)) m_rot.y += 4.0f;
 
 	/* mouse look */
-	if (mb.x || mb.y)
+	if (mb.x || mb.y || mb.z)
 	{
 		m_rot.x -= mouse.y;
 		m_rot.y += mouse.x;
@@ -521,6 +516,8 @@ bool frame(void)
 					mb.x = 1;
 				else if (event.button.button == SDL_BUTTON_RIGHT)
 					mb.y = 1;
+				else if (event.button.button == SDL_BUTTON_MIDDLE)
+					mb.z = 1;
 				break;
 
 			case SDL_MOUSEBUTTONUP:
@@ -529,6 +526,8 @@ bool frame(void)
 					mb.x = 0;
 				else if (event.button.button == SDL_BUTTON_RIGHT)
 					mb.y = 0;
+				else if (event.button.button == SDL_BUTTON_MIDDLE)
+					mb.z = 1;
 				break;
 
 			case SDL_MOUSEMOTION:
