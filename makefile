@@ -4,8 +4,8 @@ RM ?= rm -f
 PKGCONFIG ?= pkg-config
 SDL2CONFIG ?= sdl2-config
 
-CFLAGS += -std=c99 -pedantic -Wall -Wextra
-LDFLAGS += -lm
+override CFLAGS += -std=c99 -pedantic -Wall -Wextra
+override LDFLAGS += -lm
 
 SDL2 = $(shell $(PKGCONFIG) sdl2 --cflags --libs)
 
@@ -19,14 +19,14 @@ ifdef DEBUG
 CFLAGS += -DDEBUG=1 -g3 -fsanitize=address,undefined
 endif
 
-SOURCES = glprey.c backend.c wad.c bsp.c mip.c
+SOURCES_GLPREY = glprey.c backend.c wad.c bsp.c mip.c
 SOURCES_BSP2PLY = bsp2ply.c bsp.c
 SOURCES_WAD2PNG = wad2png.c wad.c mip.c
 
 all: clean glprey bsp2ply wad2png
 
-glprey: $(SOURCES)
-	$(CC) -o glprey $(SOURCES) $(LDFLAGS) $(CFLAGS) $(SDL2) $(GL)
+glprey: $(SOURCES_GLPREY)
+	$(CC) -o glprey $(SOURCES_GLPREY) $(LDFLAGS) $(CFLAGS) $(SDL2) $(GL)
 
 bsp2ply: $(SOURCES_BSP2PLY)
 	$(CC) -o bsp2ply $(SOURCES_BSP2PLY) $(LDFLAGS) $(CFLAGS)
