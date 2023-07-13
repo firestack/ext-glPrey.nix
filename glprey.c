@@ -279,6 +279,8 @@ int main(int argc, char *argv[])
 {
 	int i;
 	float time = 0.0f;
+	Uint64 time_current, time_last;
+	float deltatime;
 
 	/* check if user specified files */
 	for (i = 1; i < argc; i++)
@@ -315,15 +317,22 @@ int main(int argc, char *argv[])
 	/* init bsp */
 	init_bsp(bsp);
 
+	/* start time */
+	time_last = SDL_GetTicks64();
+
 	/* main loop */
 	while (frame())
 	{
+		/* current frame time */
+		time_current = SDL_GetTicks64();
+		deltatime = (time_current - time_last) / 1000.0f;
+
 		/* inputs */
 		if (key(SDL_SCANCODE_ESCAPE))
 			break;
 
 		/* do camera */
-		camera(1.0f, 90.0f);
+		camera(32 * deltatime, 90.0f);
 
 		/* other inputs */
 		if (time > 0)
@@ -344,6 +353,9 @@ int main(int argc, char *argv[])
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glCallList(gl_bsp);
 		glPopMatrix();
+
+		/* update frame time */
+		time_last = time_current;
 	}
 
 	/* free textures */

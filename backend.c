@@ -183,16 +183,16 @@ void camera(float speed, float hfov)
 	}
 
 	/* arrow keys */
-	if (key(SDL_SCANCODE_UP)) m_rot.x += 4.0f;
-	if (key(SDL_SCANCODE_DOWN)) m_rot.x -= 4.0f;
-	if (key(SDL_SCANCODE_LEFT)) m_rot.y -= 4.0f;
-	if (key(SDL_SCANCODE_RIGHT)) m_rot.y += 4.0f;
+	if (key(SDL_SCANCODE_UP)) m_rot.x += 8.0f * speed;
+	if (key(SDL_SCANCODE_DOWN)) m_rot.x -= 8.0f * speed;
+	if (key(SDL_SCANCODE_LEFT)) m_rot.y -= 8.0f * speed;
+	if (key(SDL_SCANCODE_RIGHT)) m_rot.y += 8.0f * speed;
 
 	/* mouse look */
 	if (mb.x || mb.y || mb.z)
 	{
-		m_rot.x -= mouse.y;
-		m_rot.y += mouse.x;
+		m_rot.x -= mouse.y * speed;
+		m_rot.y += mouse.x * speed;
 	}
 
 	/* lock camera */
