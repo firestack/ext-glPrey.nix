@@ -119,7 +119,7 @@ float dot(vec3_t v1, vec3_t v2)
 
 float normalize(vec3_t *v)
 {
-	float w = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+	float w = sqrtf(v->x * v->x + v->y * v->y + v->z * v->z);
 	v->x /= w;
 	v->y /= w;
 	v->z /= w;
