@@ -41,6 +41,15 @@ make
 - `mip.c` - Prey MIPTEX loader
 - `glprey.c` - Main GL renderer
 
+## Todo
+
+- DMO file playback
+- Lightmaps
+- Collision / gravity
+- Developer console
+- Windows support
+- WAD extractor tool
+
 ## License
 
 MIT License
