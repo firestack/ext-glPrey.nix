@@ -104,6 +104,11 @@ typedef struct
 	float x, y;
 } vec2_t;
 
+typedef struct
+{
+	int x, y;
+} vec2i_t;
+
 /*
  *
  * globals
@@ -126,6 +131,8 @@ vec3_t m_look;
 vec3_t m_strafe;
 vec3_t m_vel;
 vec3_t m_speedkey;
+vec2_t mouse;
+vec2i_t mb;
 bool wireframe = false;
 
 /* prey */
@@ -393,15 +400,13 @@ int check_extension(const char *string, const char *ext)
  * camera
  */
 
-void camera()
+void camera(void)
 {
 	int w, h;
-	GLfloat x, y;
+	float vfov, hfov;
+	float aspect;
 
 	SDL_GL_GetDrawableSize(window, &w, &h);
-
-	x = (GLfloat)w / (GLfloat)h;
-	y = (GLfloat)h / (GLfloat)w;
 
 	/* speed */
 	if (KEY(SDL_SCANCODE_LSHIFT))
@@ -448,29 +453,41 @@ void camera()
 	}
 
 	/* arrow keys */
-	if (KEY(SDL_SCANCODE_UP)) m_rot.x += 0.1f;
-	if (KEY(SDL_SCANCODE_DOWN)) m_rot.x -= 0.1f;
-	if (KEY(SDL_SCANCODE_LEFT)) m_rot.y -= 0.1f;
-	if (KEY(SDL_SCANCODE_RIGHT)) m_rot.y += 0.1f;
+	if (KEY(SDL_SCANCODE_UP)) m_rot.x += 4.0f;
+	if (KEY(SDL_SCANCODE_DOWN)) m_rot.x -= 4.0f;
+	if (KEY(SDL_SCANCODE_LEFT)) m_rot.y -= 4.0f;
+	if (KEY(SDL_SCANCODE_RIGHT)) m_rot.y += 4.0f;
+
+	/* mouse look */
+	if (mb.x || mb.y)
+	{
+		m_rot.x -= mouse.y;
+		m_rot.y += mouse.x;
+	}
 
 	/* lock camera */
-	if (m_rot.x < DEG2RAD(-75.0f)) m_rot.x = DEG2RAD(-75.0f);
-	if (m_rot.x > DEG2RAD(75.0f)) m_rot.x = DEG2RAD(75.0f);
+	if (m_rot.x < -75.0f) m_rot.x = -75.0f;
+	if (m_rot.x > 75.0f) m_rot.x = 75.0f;
 
 	/* set viewport */
 	glViewport(0, 0, w, h);
 
+	/* get fov and aspect */
+	aspect = (float)w / (float)h;
+	hfov = DEG2RAD(FOV);
+	vfov = 2 * atanf(tanf(hfov / 2) * (float)h / (float)w);
+
 	/* set perspective */
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(FOV * y, x, 1, FLT_MAX);
+	gluPerspective(ceilf(RAD2DEG(vfov)), aspect, 1, FLT_MAX);
 
 	/* set camera view */
-	m_look.x = cosf(m_rot.y) * cosf(m_rot.x);
-	m_look.y = sinf(m_rot.x);
-	m_look.z = sinf(m_rot.y) * cosf(m_rot.x);
-	m_strafe.x = cosf(m_rot.y - M_PI_2);
-	m_strafe.z = sinf(m_rot.y - M_PI_2);
+	m_look.x = cosf(DEG2RAD(m_rot.y)) * cosf(DEG2RAD(m_rot.x));
+	m_look.y = sinf(DEG2RAD(m_rot.x));
+	m_look.z = sinf(DEG2RAD(m_rot.y)) * cosf(DEG2RAD(m_rot.x));
+	m_strafe.x = cosf(DEG2RAD(m_rot.y) - M_PI_2);
+	m_strafe.z = sinf(DEG2RAD(m_rot.y) - M_PI_2);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -487,9 +504,38 @@ bool frame(void)
 	SDL_Event event;
 	bool ret = true;
 
+	mouse.x = 0;
+	mouse.y = 0;
+
 	while (SDL_PollEvent(&event))
 	{
-		if (event.type == SDL_QUIT) ret = false;
+		switch (event.type)
+		{
+			case SDL_QUIT:
+				ret = false;
+				break;
+
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+				if (event.button.button == SDL_BUTTON_LEFT)
+					mb.x = 1;
+				else if (event.button.button == SDL_BUTTON_RIGHT)
+					mb.y = 1;
+				break;
+
+			case SDL_MOUSEBUTTONUP:
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+				if (event.button.button == SDL_BUTTON_LEFT)
+					mb.x = 0;
+				else if (event.button.button == SDL_BUTTON_RIGHT)
+					mb.y = 0;
+				break;
+
+			case SDL_MOUSEMOTION:
+				mouse.x += event.motion.xrel;
+				mouse.y += event.motion.yrel;
+				break;
+		}
 	}
 
 	keys = SDL_GetKeyboardState(NULL);
