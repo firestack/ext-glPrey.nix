@@ -527,7 +527,7 @@ bool frame(void)
 				else if (event.button.button == SDL_BUTTON_RIGHT)
 					mb.y = 0;
 				else if (event.button.button == SDL_BUTTON_MIDDLE)
-					mb.z = 1;
+					mb.z = 0;
 				break;
 
 			case SDL_MOUSEMOTION:
