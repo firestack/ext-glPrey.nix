@@ -72,16 +72,8 @@ SOFTWARE.
 /* gl */
 GLint gl_bsp;
 gl_texture_t gl_textures[128];
-size_t *lightmap_offsets = NULL;
 int num_gl_textures = 0;
 bool wireframe = false;
-
-/* prey */
-bsp_t *bsp = NULL;
-wad_t *wad = NULL;
-uint8_t *palette = NULL;
-uint8_t *colormap = NULL;
-int len_palette = 0;
 
 /*
  *
@@ -109,60 +101,13 @@ int find_texture(char *s)
 }
 
 /*
- * init_bsp
+ * process_bsp
  */
 
-void init_bsp(bsp_t *bsp)
+void process_bsp(bsp_t *bsp)
 {
+	/* variables */
 	int i, v;
-	mip_t *mip;
-	int num_pixels;
-
-	/* generate textures */
-	for (i = 0; i < wad->header.num_lumps; i++)
-	{
-		/* only miptex */
-		if (wad->lumps[i].type != 11)
-			continue;
-
-		/* get mip */
-		mip = mip_from_buffer(wad->lumps[i].data, wad->lumps[i].len_data);
-		if (!mip)
-		{
-			printf("couldn't read mip %s\n", wad->lumps[i].name);
-			continue;
-		}
-
-		/* copy values for searching */
-		memcpy(gl_textures[num_gl_textures].name, wad->lumps[i].name, 8);
-		gl_textures[num_gl_textures].width = mip->header.width;
-		gl_textures[num_gl_textures].height = mip->header.height;
-		num_pixels = gl_textures[num_gl_textures].width * gl_textures[num_gl_textures].height;
-
-		/* create 24 bit version */
-		gl_textures[num_gl_textures].pixels = malloc(num_pixels * 3);
-		for (v = 0; v < num_pixels; v++)
-		{
-			uint8_t *entry = &((uint8_t *)palette)[mip->entries[0].pixels[v] * 3];
-			gl_textures[num_gl_textures].pixels[v * 3] = *(entry);
-			gl_textures[num_gl_textures].pixels[(v * 3) + 1] = *(entry + 1);
-			gl_textures[num_gl_textures].pixels[(v * 3) + 2] = *(entry + 2);
-		}
-
-		glGenTextures(1, &gl_textures[num_gl_textures].id);
-		glBindTexture(GL_TEXTURE_2D, gl_textures[num_gl_textures].id);
-		glTexImage2D(GL_TEXTURE_2D, 0, 3, gl_textures[num_gl_textures].width, gl_textures[num_gl_textures].height, 0, GL_RGB, GL_UNSIGNED_BYTE, gl_textures[num_gl_textures].pixels);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		/* number of gl textures */
-		num_gl_textures++;
-
-		/* free miptex */
-		mip_free(mip);
-	}
 
 	/* open list */
 	gl_bsp = glGenLists(1);
@@ -173,17 +118,8 @@ void init_bsp(bsp_t *bsp)
 	/* do commands */
 	for (i = 0; i < bsp->num_polygons; i++)
 	{
+		/* variables */
 		vec3_t tu, tv, to;
-		vec2_t mins, maxs;
-		/*
-		vec2_t extents;
-		*/
-
-		/* init */
-		mins.x = INFINITY;
-		mins.y = INFINITY;
-		maxs.x = -INFINITY;
-		maxs.y = -INFINITY;
 
 		/* find texture */
 		v = find_texture(bsp->polygons[i].tname);
@@ -228,32 +164,10 @@ void init_bsp(bsp_t *bsp)
 			p.y *= SCALE;
 			p.z *= SCALE;
 
-			/* store s, t */
-			if (s > maxs.x) maxs.x = s;
-			if (t > maxs.y) maxs.y = t;
-			if (s < mins.x) mins.x = s;
-			if (t < mins.y) mins.y = t;
-
-			/*
-			printf("x: %0.4f y: %0.4f z: %0.4f\n", p.x, p.y, p.z);
-			printf("s: %0.4f t: %0.4f\n\n", s, t);
-			*/
-
 			/* do commands */
 			glTexCoord2f(s, t);
 			glVertex3f(p.x, p.y, p.z);
 		}
-
-		/* get extents */
-		/*
-		extents.x = (maxs.x - mins.x);
-		extents.y = (maxs.y - mins.y);
-
-		printf("mins: %0.4f %0.4f\n", mins.x, mins.y);
-		printf("maxs: %0.4f %0.4f\n", maxs.x, maxs.y);
-		printf("extents: %0.4f %0.4f\n", extents.x, extents.y);
-		printf("bytes: %0.4f\n\n", extents.x * extents.y);
-		*/
 
 		/* end gl */
 		glEnd();
@@ -272,6 +186,66 @@ void init_bsp(bsp_t *bsp)
 }
 
 /*
+ * process_wad
+ */
+
+void process_wad(wad_t *wad)
+{
+	int i, p;
+	mip_t *mip;
+	int num_pixels;
+	uint8_t *palette;
+
+	palette = wad_find(wad, "PAL", NULL);
+
+	/* generate textures */
+	for (i = 0; i < wad->header.num_lumps; i++)
+	{
+		/* only miptex */
+		if (wad->lumps[i].type != 11)
+			continue;
+
+		/* get mip */
+		mip = mip_from_buffer(wad->lumps[i].data, wad->lumps[i].len_data);
+		if (!mip)
+		{
+			printf("couldn't read mip %s\n", wad->lumps[i].name);
+			continue;
+		}
+
+		/* copy values for searching */
+		memcpy(gl_textures[num_gl_textures].name, wad->lumps[i].name, 8);
+		gl_textures[num_gl_textures].width = mip->header.width;
+		gl_textures[num_gl_textures].height = mip->header.height;
+		num_pixels = gl_textures[num_gl_textures].width * gl_textures[num_gl_textures].height;
+
+		/* create 24 bit version */
+		gl_textures[num_gl_textures].pixels = malloc(num_pixels * 3);
+		for (p = 0; p < num_pixels; p++)
+		{
+			uint8_t *entry = &((uint8_t *)palette)[mip->entries[0].pixels[p] * 3];
+			gl_textures[num_gl_textures].pixels[p * 3] = *(entry);
+			gl_textures[num_gl_textures].pixels[(p * 3) + 1] = *(entry + 1);
+			gl_textures[num_gl_textures].pixels[(p * 3) + 2] = *(entry + 2);
+		}
+
+		glGenTextures(1, &gl_textures[num_gl_textures].id);
+		glBindTexture(GL_TEXTURE_2D, gl_textures[num_gl_textures].id);
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, gl_textures[num_gl_textures].width, gl_textures[num_gl_textures].height, 0, GL_RGB, GL_UNSIGNED_BYTE, gl_textures[num_gl_textures].pixels);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		/* number of gl textures */
+		num_gl_textures++;
+
+		/* free miptex */
+		mip_free(mip);
+	}
+}
+
+/*
  * main
  */
 
@@ -281,6 +255,8 @@ int main(int argc, char *argv[])
 	float time = 0.0f;
 	Uint64 time_current, time_last;
 	float deltatime;
+	bsp_t *bsp = NULL;
+	wad_t *wad = NULL;
 
 	/* check if user specified files */
 	for (i = 1; i < argc; i++)
@@ -306,11 +282,6 @@ int main(int argc, char *argv[])
 	if (wad == NULL) wad = wad_read("MACT.WAD");
 	if (wad == NULL) error("couldn't read wad MACT.WAD");
 
-	/* palette */
-	palette = wad_find(wad, "PAL", &len_palette);
-	if (palette == NULL)
-		error("wad does not contain PAL lump");
-
 	/* init sdl and gl  */
 	init(640, 480, "glPrey");
 
@@ -318,8 +289,11 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "%s\n", glGetString(GL_VERSION));
 	fprintf(stderr, "%s\n", glGetString(GL_RENDERER));
 
+	/* init wad */
+	process_wad(wad);
+
 	/* init bsp */
-	init_bsp(bsp);
+	process_bsp(bsp);
 
 	/* start time */
 	time_last = SDL_GetTicks64();

@@ -39,7 +39,7 @@ SOFTWARE.
 
 /* sdl2 */
 #include <SDL.h>
-#include <SDL_opengl.h>
+#include <SDL_opengles2.h>
 
 /* gl */
 #include <GL/gl.h>
@@ -349,4 +349,30 @@ bool key(int sc)
 void *zalloc(size_t size)
 {
 	return calloc(1, size);
+}
+
+/*
+ * draw_mesh
+ */
+
+void draw_mesh(gl_mesh_t *mesh)
+{
+	int i;
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	for (i = 0; i < mesh->num_textures; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, mesh->textures[i].id);
+		glEnable(GL_TEXTURE_2D);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, mesh->vertices);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, mesh->texcoords);
+
+		glDisable(GL_TEXTURE_2D);
+	}
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
