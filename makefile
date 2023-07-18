@@ -36,3 +36,10 @@ wad2png: $(SOURCES_WAD2PNG)
 
 clean:
 	$(RM) glprey bsp2ply wad2png *.o *.exe
+
+.PHONY: install
+install: glprey bsp2ply wad2png
+	mkdir -p "$(DESTDIR)/bin"
+	install -m0755 ./glprey "$(DESTDIR)/bin"
+	install -m0755 ./bsp2ply "$(DESTDIR)/bin"
+	install -m0755 ./wad2png "$(DESTDIR)/bin"
